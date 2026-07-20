@@ -4,3 +4,7 @@ dist/
 .env.local
 .env.*.local
 .vercel/
+.vercel
+.env*
+*.zip
+*.tsbuildinfo

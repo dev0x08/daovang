@@ -4,13 +4,23 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     match /users/{uid} {
       allow read: if signedIn();
-      allow create: if signedIn() && request.auth.uid == uid;
-      allow update: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid;
       match /completedMatches/{matchId} {
         allow read, create: if signedIn() && request.auth.uid == uid;
         allow update, delete: if false;
       }
     }
-    match /rooms/{roomId} { allow read, create, update, delete: if signedIn(); }
+    match /rooms/{roomId} {
+      allow read, create, update, delete: if signedIn();
+      match /messages/{messageId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 300;
+        allow update, delete: if false;
+      }
+    }
   }
 }

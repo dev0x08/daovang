@@ -17,13 +17,14 @@ type Props = {
   compact?: boolean;
   active?: boolean;
   subtitle?: string;
+  hideSubtitle?: boolean;
   trailing?: ReactNode;
   className?: string;
 };
 
 const cosmeticClass = (id?: string) => id ? `cosmetic-${id}` : '';
 
-export default function PlayerIdentity({ player, compact=false, active=false, subtitle, trailing, className='' }: Props) {
+export default function PlayerIdentity({ player, compact=false, active=false, subtitle, hideSubtitle=false, trailing, className='' }: Props) {
   const equipped = player.equipped || {};
   const title = itemById(equipped.title)?.name;
   const avatar = player.avatar || player.photoURL || '';
@@ -35,7 +36,7 @@ export default function PlayerIdentity({ player, compact=false, active=false, su
       </span>
       <span className="identity-copy">
         <b className={cosmeticClass(equipped.nameColor)}>{player.name}</b>
-        <small>{title || subtitle || player.rank || (player.bot ? 'AI' : 'NGƯỜI CHƠI')}</small>
+        {!hideSubtitle && <small>{title || subtitle || player.rank || (player.bot ? 'AI' : 'NGƯỜI CHƠI')}</small>}
       </span>
       {player.rank && <span className={`identity-rank rank-${player.rank.toLowerCase().replace(/\s+/g,'-')}`}><Crown aria-hidden="true"/>{player.rank}</span>}
       {trailing && <span className="identity-trailing">{trailing}</span>}

@@ -33,6 +33,7 @@ import {
 import { useSearchParams } from 'react-router-dom';
 import { Equipped, useAuth } from '../context/AuthContext';
 import PlayerIdentity from '../components/PlayerIdentity';
+import ChatPanel from '../components/ChatPanel';
 import { db } from '../lib/firebase';
 
 type Player = {
@@ -115,21 +116,23 @@ export default function Room() {
   useEffect(() => {
     if (!db) return;
     const roomsQuery = query(collection(db, 'rooms'), where('status', '==', 'waiting'), limit(50));
-    return onSnapshot(roomsQuery, (snapshot) => {
+    const unsubscribe = onSnapshot(roomsQuery, (snapshot) => {
       const rooms = snapshot.docs
         .map((item) => ({ id: item.id, ...item.data() } as Room))
         .filter((item) => item.players.length < item.maxPlayers)
         .sort((a, b) => Number(b.visibility === 'public') - Number(a.visibility === 'public'));
       setWaitingRooms(rooms);
     });
+    return () => { unsubscribe(); };
   }, []);
 
   useEffect(() => {
     if (!db || !room) return;
-    return onSnapshot(doc(db, 'rooms', room.id), (snapshot) => {
+    const unsubscribe = onSnapshot(doc(db, 'rooms', room.id), (snapshot) => {
       if (snapshot.exists()) setRoom({ id: snapshot.id, ...snapshot.data() } as Room);
       else setRoom(null);
     });
+    return () => { unsubscribe(); };
   }, [room?.id]);
 
   const createRoom = async () => {
@@ -540,7 +543,7 @@ export default function Room() {
           )}
         </div>
 
-        <div className="panel room-settings">
+        <div className="room-side-stack"><div className="panel room-settings">
           <header><DoorOpen /> THIẾT LẬP TRẬN</header>
           <div className="setting-row"><span>Loại phòng</span><b>{room.visibility === 'public' ? 'CÔNG KHAI' : 'RIÊNG TƯ'}</b></div>
           <div className="setting-row"><span>Bàn chơi</span><b>12×5</b></div>
@@ -554,7 +557,7 @@ export default function Room() {
             <div className="waiting-host"><Radio /> Đang chờ chủ phòng bắt đầu...</div>
           )}
           {room.players.length < 6 && <small>Cần thêm {6 - room.players.length} người hoặc AI.</small>}
-        </div>
+        </div><div className="panel lobby-chat-card"><ChatPanel roomId={room.id}/></div></div>
       </div>
     </section>
   );

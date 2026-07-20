@@ -12,7 +12,7 @@ export type ExternalPoint = { side:MapSide; row?:number; col?:number };
 export type ObjectivePoint = ExternalPoint & { id:string; label:string };
 export type MapConfig = { id:string; name:string; theme:'mine'|'ocean'|'tomb'; rows:number; cols:number; entrance:ExternalPoint; objectives:ObjectivePoint[]; cardSet:string; obstacleCount:number; obstacleMinCol:number; obstacleMaxCol:number };
 export type Treasure = { id:string; revealed:boolean; isGold:boolean; peekedBy:string[] };
-export type GameState = { matchId:string; map:MapConfig; board:Cell[][]; obstacles:string[]; players:Player[]; treasures:Treasure[]; deck:Card[]; discardPile:Card[]; turn:number; logs:string[]; winner:null|'miners'|'wolves'; turns:number; testMode?:boolean };
+export type GameState = { matchId:string; map:MapConfig; board:Cell[][]; obstacles:string[]; players:Player[]; treasures:Treasure[]; deck:Card[]; discardPile:Card[]; turn:number; logs:string[]; winner:null|'miners'|'wolves'; turns:number };
 
 export const GOLD_MINE_MAP:MapConfig={
  id:'gold-mine',name:'Mỏ Vàng Bị Lãng Quên',theme:'mine',rows:5,cols:12,
@@ -119,35 +119,6 @@ const playerBase=(id:string,name:string,role:Role,isBot:boolean,avatar:string,ha
 export const newGame=(humanName='Bạn',botCount=5,map=GOLD_MINE_MAP):GameState=>{const total=Math.max(6,Math.min(8,botCount+1)),actualBots=total-1,deck=createDeck(),names=['Digger Bot','Luna','Búa Sắt','Mắt Đỏ','Râu Vàng','Đá Xám','Mỏ Neo'],roles=shuffle([...Array(total-2).fill('miner'),...Array(2).fill('wolf')]) as Role[];const wolfIndexes=roles.map((r,i)=>r==='wolf'?i:-1).filter(i=>i>=0);const saboteurIndex=wolfIndexes[Math.floor(Math.random()*wolfIndexes.length)];const players=[playerBase('human',humanName,roles[0],false,'human',draw(deck,6),saboteurIndex===0),...Array.from({length:actualBots},(_,i)=>playerBase(`bot-${i}`,names[i]||`AI ${i+1}`,roles[i+1],true,`bot-${i}`,draw(deck,6),saboteurIndex===i+1))];const treasureFlags=shuffle([true,false,false]);const firstTurn=Math.floor(Math.random()*players.length);return{matchId:`match-${Date.now()}-${uid()}`,map,board:Array.from({length:map.rows},()=>Array<Cell>(map.cols).fill(null)),obstacles:generateObstacles(map),players,treasures:map.objectives.map((o,i)=>({id:o.id,revealed:false,isGold:treasureFlags[i]??false,peekedBy:[]})),deck,discardPile:[],turn:firstTurn,logs:[`Người đi đầu tiên: ${players[firstTurn].name}.`,'Trận đấu đã bắt đầu.'],winner:null,turns:0}};
 
 
-export const createPathTestGame=(humanName='Người kiểm thử',map=GOLD_MINE_MAP):GameState=>{
- const kinds:PathKind[]=['h','v','ne','nw','se','sw','tUp','tDown','tLeft','tRight','cross','collapse'];
- const hand=kinds.map(kind=>make(kind));
- const player=playerBase('human',humanName,'miner',false,'human',hand,false);
- return{matchId:`test-${Date.now()}-${uid()}`,map,board:Array.from({length:map.rows},()=>Array<Cell>(map.cols).fill(null)),obstacles:[],players:[player],treasures:map.objectives.map((o,i)=>({id:o.id,revealed:false,isGold:i===1,peekedBy:[]})),deck:[],discardPile:[],turn:0,logs:['Phòng test hướng đi đã sẵn sàng. Hãy bắt đầu từ ô cạnh cửa hầm.'],winner:null,turns:0,testMode:true};
-};
-
-export const testPlaceCard=(state:GameState,cardIndex:number,row:number,col:number):GameState=>{
- const card=state.players[0]?.hand[cardIndex];
- if(!state.testMode||!card||!isValidPlacement(state.board,card,row,col,state.map,state.obstacles))return state;
- const s=structuredClone(state) as GameState;
- s.board[row][col]={card:{...card,id:uid()},owner:'human'};
- s.logs.unshift(`TEST: đặt ${card.label} tại ${String.fromCharCode(65+col)}${row+1}.`);
- resolveTreasures(s);
- // Phòng test không khóa bàn khi chạm rương để tiếp tục kiểm tra mọi nhánh.
- s.winner=null;
- return s;
-};
-
-export const clearTestCell=(state:GameState,row:number,col:number):GameState=>{
- if(!state.testMode||!state.board[row]?.[col])return state;
- const s=structuredClone(state) as GameState;
- s.board[row][col]=null;
- s.treasures.forEach(t=>{t.revealed=false;t.peekedBy=[]});
- s.logs.unshift(`TEST: xóa ô ${String.fromCharCode(65+col)}${row+1}.`);
- return s;
-};
-
-export const resetPathTest=(state:GameState):GameState=>createPathTestGame(state.players[0]?.name||'Người kiểm thử',state.map);
 
 export const placeCard=(state:GameState,playerIndex:number,cardIndex:number,row:number,col:number):GameState=>{const card0=state.players[playerIndex]?.hand[cardIndex];if(state.winner||state.turn!==playerIndex||!card0||!isValidPlacement(state.board,card0,row,col,state.map,state.obstacles))return state;const s=structuredClone(state) as GameState,p=s.players[playerIndex],card=p.hand.splice(cardIndex,1)[0];s.board[row][col]={card,owner:p.id};refill(s,p);p.score++;s.logs.unshift(`${p.name} đặt ${card.label} tại ${String.fromCharCode(65+col)}${row+1}.`);resolveTreasures(s);if(!s.winner)advance(s);return s};
 const allEdgesValid=(board:Cell[][],map:MapConfig,row:number,col:number)=>{
