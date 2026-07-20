@@ -36,6 +36,7 @@ service cloud.firestore {
         && request.resource.data.onlineSecondsToday is int && request.resource.data.onlineSecondsToday >= 0 && request.resource.data.onlineSecondsToday <= 86400
         && request.resource.data.dailyChats is int && request.resource.data.dailyChats >= 0 && request.resource.data.dailyChats <= 500;
       allow delete: if false;
+      match /matchHistory/{matchId} { allow read: if isSelf(uid); allow create: if isSelf(uid) && request.resource.data.matchId == matchId; allow update, delete: if false; }
       match /completedMatches/{matchId} {
         allow read: if isSelf(uid);
         allow create: if isSelf(uid)
@@ -48,6 +49,8 @@ service cloud.firestore {
         allow update, delete: if false;
       }
     }
+
+    match /reports/{reportId} { allow create: if signedIn() && request.resource.data.reporterUid == request.auth.uid && request.resource.data.reason in ['AFK','Spam','Tên phản cảm','Phá game','Nghi gian lận']; allow read, update, delete: if false; }
 
     match /rooms/{roomId} {
       allow read: if signedIn();

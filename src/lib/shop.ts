@@ -1,6 +1,10 @@
-export type ShopCategory='frame'|'nameColor'|'nameplate'|'title'|'badge';
+export type ShopCategory='frame'|'nameColor'|'nameplate'|'title'|'badge'|'boardSkin'|'pieceSkin';
 export type ShopItem={id:string;name:string;description:string;category:ShopCategory;price:number;preview:string};
 export const SHOP_ITEMS:ShopItem[]=[
+ {id:'board-ice',name:'Hang Băng',description:'Đổi nền bàn cờ sang phong cách băng giá.',category:'boardSkin',price:900,preview:'❄'},
+ {id:'board-volcano',name:'Hầm Núi Lửa',description:'Đổi nền bàn cờ sang đá núi lửa.',category:'boardSkin',price:1100,preview:'♨'},
+ {id:'piece-gold',name:'Quân Hoàng Kim',description:'Đường hầm và quân cờ ánh vàng.',category:'pieceSkin',price:700,preview:'◆'},
+ {id:'piece-crystal',name:'Quân Pha Lê',description:'Quân cờ pha lê xanh bí ẩn.',category:'pieceSkin',price:950,preview:'◇'},
  {id:'frame-gold',name:'Khung Vàng Cổ',description:'Khung avatar ánh vàng cổ điển.',category:'frame',price:450,preview:'◆'},
  {id:'frame-wolf',name:'Khung Sói Đêm',description:'Khung avatar đỏ tối dành cho hồ sơ.',category:'frame',price:700,preview:'◈'},
  {id:'name-emerald',name:'Tên Lục Bảo',description:'Màu tên xanh lục bảo.',category:'nameColor',price:350,preview:'Aa'},
