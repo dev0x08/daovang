@@ -885,3 +885,82 @@
 .missions-hero{border-radius:22px!important;overflow:hidden;position:relative}.missions-hero:after{content:"";position:absolute;right:-80px;top:-80px;width:300px;height:300px;border:1px solid rgba(224,176,79,.14);border-radius:50%;box-shadow:0 0 0 35px rgba(224,176,79,.035),0 0 0 70px rgba(224,176,79,.02)}.mission-level{width:180px!important;height:180px!important;border-radius:24px!important;z-index:1;background:linear-gradient(145deg,#2d2112,#110d08)!important}.mission-level .game-emblem{margin-bottom:6px}.mission-level small{letter-spacing:1.3px;color:#aa9b82}.mission-section-title>.game-emblem{flex:0 0 auto}.mission-card{grid-template-columns:76px 1fr 230px!important;padding:20px 22px!important;border-radius:18px!important;background:linear-gradient(145deg,rgba(28,22,14,.97),rgba(12,10,8,.97))!important;transition:.25s;overflow:hidden;position:relative}.mission-card:after{content:"";position:absolute;right:-30px;top:-40px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(218,164,62,.08),transparent 68%);pointer-events:none}.mission-card:hover{transform:translateX(4px);border-color:rgba(226,173,70,.45)}.mission-card.done{box-shadow:inset 4px 0 #d7a744}.mission-card.claimed{opacity:.72;box-shadow:inset 4px 0 #4d9d6c}.mission-icon{width:auto!important;height:auto!important;background:none!important}.mission-main h3{font-family:'Barlow Condensed';font-size:22px;letter-spacing:.4px}.mission-progress{height:16px!important;position:relative;border:1px solid #3e2f1d;background:#130f0a!important}.mission-progress i{background:linear-gradient(90deg,#7c5421,#e7b750 70%,#ffe397)!important;box-shadow:0 0 16px rgba(230,178,76,.24)}.mission-progress em{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-size:9px;font-weight:900;color:#fff;text-shadow:0 1px 3px #000}.mission-reward{grid-template-columns:1fr 1fr!important;min-width:0!important;z-index:1}.reward-chip{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 10px;border:1px solid rgba(218,164,62,.24);background:#19130d;border-radius:9px;font-size:12px}.reward-chip svg{width:15px}.reward-chip.coin{color:#efbf5c}.reward-chip.exp{color:#8bd6ff;border-color:rgba(90,170,210,.24);background:#0d171c}.mission-reward button{min-height:40px!important;font-size:11px}.mission-card.claimed .game-emblem{animation:mission-claimed 1.8s ease-in-out infinite alternate}@keyframes mission-claimed{to{filter:brightness(1.2);transform:scale(1.04)}}
 @media(max-width:980px){.shop-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mission-card{grid-template-columns:68px 1fr!important}.mission-reward{grid-column:2!important;max-width:300px}}
 @media(max-width:680px){.path-guide-grid,.shop-grid{grid-template-columns:1fr}.path-guide-grid article{min-height:225px}.shop-toolbar{align-items:stretch;flex-direction:column}.shop-wallet{justify-content:flex-end}.shop-preview{height:180px!important}.mission-level{width:112px!important;height:112px!important}.mission-level .game-emblem{display:none}.mission-card{grid-template-columns:58px 1fr!important;padding:16px!important}.mission-card .game-emblem{width:48px;height:48px}.mission-reward{grid-column:1/-1!important;max-width:none}.mission-main small{text-align:left}}
+
+/* v2.1 — mobile gameplay priority: board -> cards -> log/chat */
+.orientation-hint{display:none}
+.ping-badge b{font:inherit}.ping-badge small{font:inherit;margin-left:3px}.game-actions .btn span{display:inline}
+
+@media (max-width:760px){
+  /* Mobile uses a dedicated compact HUD instead of the desktop fullscreen prompt. */
+  .fullscreen-prompt{display:none!important}
+  .orientation-hint{
+    position:fixed;inset:0;z-index:10050;display:grid;place-items:center;
+    padding:18px;background:rgba(3,5,4,.88);backdrop-filter:blur(8px)
+  }
+  .orientation-hint-card{
+    width:min(390px,94vw);padding:28px 22px 22px;text-align:center;
+    border:1px solid #8b682a;background:linear-gradient(180deg,#17140d,#0b0e0b);
+    box-shadow:0 24px 70px #000, inset 0 0 36px rgba(219,164,57,.06)
+  }
+  .orientation-phone{width:78px;height:54px;margin:0 auto 16px;display:grid;place-items:center;border:2px solid #d5a43f;border-radius:10px;transform:rotate(90deg);color:#f0bd54}
+  .orientation-phone svg{width:26px;height:26px;animation:orientation-nudge 1.6s ease-in-out infinite}
+  .orientation-hint-card h2{font-size:26px;line-height:1.05;margin:8px 0 10px}.orientation-hint-card p{color:#b8ad9d;line-height:1.5;margin:0 0 18px}
+  @keyframes orientation-nudge{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(18deg)}}
+
+  /* Flatten the desktop board/sidebar wrapper so cards can sit before log/chat. */
+  .game-layout-v4{display:contents!important}
+  .board-wrap{order:2!important}
+  .hand-area{order:3!important}
+  .right-sidebar{order:4!important;margin-top:0!important}
+
+  .game-top{gap:5px!important}
+  .turn-pill{min-height:38px!important;padding:6px 9px!important;font-size:13px!important}
+  .turn-pill svg{width:18px;height:18px}
+  .game-actions{gap:4px!important}
+  .game-actions .btn{width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important;border-radius:5px}
+  .game-actions .btn svg{width:16px!important;height:16px!important}
+  .game-actions .btn span{display:none!important}
+  .game-actions .action-fullscreen{display:none!important}
+  .ping-badge{height:34px;min-width:42px;padding:0 6px!important;justify-content:center;font-size:10px!important}
+  .ping-badge small{display:none}
+
+  .hand-area{padding:6px!important;gap:5px!important}
+  .special-bar{grid-template-columns:repeat(4,78px)!important;grid-template-rows:16px 84px!important;gap:5px!important}
+  .special-bar>span{font-size:9px!important;line-height:16px}
+  .special-bar button{min-width:78px!important;width:78px!important;height:82px!important;padding:5px 2px!important}
+  .special-bar button>svg{width:22px!important;height:22px!important}
+  .special-bar button b{font-size:8px!important;line-height:1.05}
+  .special-bar button small{font-size:5.5px!important;margin-top:2px}
+
+  .hand-title{min-height:34px!important}
+  .hand-title span{font-size:15px!important}.hand-title small{font-size:8px!important}
+  .hand-title .btn{width:34px!important;min-width:34px!important;height:32px!important;min-height:32px!important}
+  .hand-title .btn svg{width:15px;height:15px}
+  .cards{height:146px!important;min-height:146px!important;gap:6px!important}
+  .game-card{flex-basis:98px!important;width:98px!important;height:140px!important;min-height:140px!important;padding:6px 4px!important}
+  .game-card>small{font-size:5.5px!important}.game-card .tunnel-svg{width:50px!important;height:50px!important}.game-card .action-art{height:52px!important}.game-card .action-art svg{width:28px;height:28px}.game-card b{font-size:8.5px!important}.game-card span{font-size:5.5px!important}
+
+  .right-sidebar{height:190px!important;min-height:190px!important}
+  .sidebar-tabs{height:38px!important}.sidebar-tabs button{font-size:11px!important;padding:7px!important}.sidebar-tabs button svg{width:14px!important;height:14px!important}
+  .chat-head{display:none!important}.chat-messages{min-height:78px!important;padding:8px!important}.chat-empty{font-size:11px}.chat-compose{padding:7px!important;gap:6px!important}.chat-compose input{padding:8px 9px!important;font-size:12px}.chat-compose button{width:34px!important;height:34px!important}
+  .log-list p{font-size:10px!important;padding:6px 8px!important}
+}
+
+@media (max-width:760px) and (orientation:landscape){
+  .orientation-hint{display:none!important}
+  .game-page,.game-page:fullscreen{gap:5px!important;padding:4px!important}
+  .game-top{grid-template-columns:minmax(120px,.8fr) minmax(190px,1fr) auto!important}
+  .game-top h1{font-size:14px!important}.game-top>div:first-child>span{font-size:6px!important}
+  .turn-pill{min-height:34px!important;font-size:12px!important}
+  .game-actions .btn{width:32px!important;min-width:32px!important;height:32px!important;min-height:32px!important}
+  .ping-badge{height:32px!important}
+  .mine-board-shell.dynamic{height:330px!important;min-height:330px!important}
+  .hand-area{display:grid!important;grid-template-columns:300px minmax(0,1fr)!important;grid-template-rows:32px 126px!important;column-gap:6px!important}
+  .special-bar{grid-column:1;grid-row:1/3;grid-template-columns:repeat(4,68px)!important;grid-template-rows:15px 104px!important;align-self:stretch}
+  .special-bar button{min-width:68px!important;width:68px!important;height:102px!important}
+  .hand-title{grid-column:2;grid-row:1;min-height:30px!important}
+  .cards{grid-column:2;grid-row:2;height:126px!important;min-height:126px!important}
+  .game-card{flex-basis:88px!important;width:88px!important;height:120px!important;min-height:120px!important}
+  .game-card .tunnel-svg{width:44px!important;height:44px!important}.game-card .action-art{height:45px!important}
+  .right-sidebar{height:155px!important;min-height:155px!important}
+}
