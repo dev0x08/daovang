@@ -10,6 +10,7 @@ import {
   query,
   serverTimestamp,
   updateDoc,
+  runTransaction,
   where,
 } from 'firebase/firestore';
 import {
@@ -59,7 +60,8 @@ type Room = {
   players: Player[];
 };
 
-const makeCode = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+const ROOM_CODE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const makeCode=()=>{const bytes=new Uint8Array(6);crypto.getRandomValues(bytes);return Array.from(bytes,b=>ROOM_CODE_CHARS[b%ROOM_CODE_CHARS.length]).join('')};
 
 async function hashPassword(value: string): Promise<string> {
   const bytes = new TextEncoder().encode(value);
@@ -141,7 +143,8 @@ export default function Room() {
       setError('Firebase chưa được cấu hình.');
       return;
     }
-    if (!roomName.trim()) {
+    const safeRoomName=roomName.trim().replace(/\s+/g,' ').slice(0,40);
+    if (safeRoomName.length < 3) {
       setError('Vui lòng nhập tên phòng.');
       return;
     }
@@ -155,13 +158,13 @@ export default function Room() {
       const passwordHash = visibility === 'private' ? await hashPassword(createPassword.trim()) : '';
       const data = {
         code: makeCode(),
-        name: roomName.trim(),
+        name: safeRoomName,
         hostId: profile.uid,
         hostName: profile.displayName,
         status: 'waiting' as const,
         visibility,
         passwordHash,
-        maxPlayers: 8,
+        maxPlayers: 6,
         players: [
           {
             uid: profile.uid,
@@ -188,15 +191,6 @@ export default function Room() {
   const enterRoom = async (target: Room, password = '') => {
     setError('');
     if (!profile || !db) return;
-    if (target.players.some((player) => player.uid === profile.uid)) {
-      setRoom(target);
-      setPendingRoom(null);
-      return;
-    }
-    if (target.status !== 'waiting' || target.players.length >= target.maxPlayers) {
-      setError('Phòng đã bắt đầu hoặc đã đủ người.');
-      return;
-    }
     if (target.visibility === 'private') {
       const suppliedHash = await hashPassword(password.trim());
       if (!password.trim() || suppliedHash !== target.passwordHash) {
@@ -204,22 +198,22 @@ export default function Room() {
         return;
       }
     }
-
-    const players = [
-      ...target.players,
-      {
-        uid: profile.uid,
-        name: profile.displayName,
-        avatar: profile.photoURL,
-        ready: false,
-        rank: profile.rank,
-        equipped: profile.equipped,
-      },
-    ];
-    await updateDoc(doc(db, 'rooms', target.id), { players });
-    setRoom({ ...target, players });
-    setPendingRoom(null);
-    setJoinPassword('');
+    try {
+      const ref=doc(db,'rooms',target.id);
+      const joined=await runTransaction(db,async tx=>{
+        const snap=await tx.get(ref);
+        if(!snap.exists()) throw new Error('Phòng không còn tồn tại.');
+        const current={id:snap.id,...snap.data()} as Room;
+        if(current.players.some(p=>p.uid===profile.uid)) return current;
+        if(current.status!=='waiting') throw new Error('Phòng đã bắt đầu.');
+        if(current.players.length>=Math.min(6,current.maxPlayers)) throw new Error('Phòng đã đủ người.');
+        const player={uid:profile.uid,name:profile.displayName.slice(0,40),avatar:profile.photoURL,ready:false,rank:profile.rank,equipped:profile.equipped};
+        const players=[...current.players,player];
+        tx.update(ref,{players});
+        return {...current,players};
+      });
+      setRoom(joined);setPendingRoom(null);setJoinPassword('');
+    } catch(e){setError(e instanceof Error?e.message:'Không thể tham gia phòng.');}
   };
 
   const requestJoin = (target: Room) => {
@@ -252,37 +246,47 @@ export default function Room() {
   };
 
   const addBot = async () => {
-    if (!room || !db || profile?.uid !== room.hostId || room.players.length >= room.maxPlayers) return;
-    const players = [
-      ...room.players,
-      {
-        uid: `bot-${crypto.randomUUID()}`,
-        name: `AI Thợ Mỏ ${room.players.filter((player) => player.bot).length + 1}`,
-        avatar: '',
-        bot: true,
-        ready: true,
-      },
-    ];
-    await updateDoc(doc(db, 'rooms', room.id), { players });
+    if (!room || !db || profile?.uid !== room.hostId) return;
+    const ref=doc(db,'rooms',room.id);
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(ref);if(!snap.exists())return;
+      const current={id:snap.id,...snap.data()} as Room;
+      if(current.hostId!==profile.uid||current.status!=='waiting'||current.players.length>=Math.min(6,current.maxPlayers))return;
+      const players=[...current.players,{uid:`bot-${crypto.randomUUID()}`,name:`AI Thợ Mỏ ${current.players.filter(p=>p.bot).length+1}`,avatar:'',bot:true,ready:true}];
+      tx.update(ref,{players});
+    });
   };
 
   const leaveRoom = async () => {
     if (!room || !db || !profile) return;
-    if (profile.uid === room.hostId) await deleteDoc(doc(db, 'rooms', room.id));
-    else {
-      await updateDoc(doc(db, 'rooms', room.id), {
-        players: room.players.filter((player) => player.uid !== profile.uid),
-      });
-    }
+    const ref=doc(db,'rooms',room.id);
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(ref);if(!snap.exists())return;
+      const current={id:snap.id,...snap.data()} as Room;
+      if(current.hostId===profile.uid){tx.delete(ref);return;}
+      tx.update(ref,{players:current.players.filter(p=>p.uid!==profile.uid)});
+    });
     setRoom(null);
   };
 
   const startRoom = async () => {
-    if (!room || !db || profile?.uid !== room.hostId || room.players.length < 6) return;
-    startingRef.current = true;
-    await updateDoc(doc(db, 'rooms', room.id), { status: 'started' });
-    window.location.href = `/game?mode=room&room=${room.id}&players=${room.players.length}`;
+    if (!room || !db || profile?.uid !== room.hostId) return;
+    try{
+      const ref=doc(db,'rooms',room.id);
+      const count=await runTransaction(db,async tx=>{
+        const snap=await tx.get(ref);if(!snap.exists())throw new Error('Phòng không còn tồn tại.');
+        const current={id:snap.id,...snap.data()} as Room;
+        if(current.hostId!==profile.uid)throw new Error('Chỉ chủ phòng được bắt đầu.');
+        if(current.status!=='waiting')throw new Error('Phòng đã bắt đầu.');
+        if(current.players.length<6||current.players.length>6)throw new Error('Cần đúng 6 người chơi.');
+        if(new Set(current.players.map(p=>p.uid)).size!==current.players.length)throw new Error('Danh sách người chơi không hợp lệ.');
+        tx.update(ref,{status:'started',startedAt:serverTimestamp()});return current.players.length;
+      });
+      startingRef.current=true;
+      window.location.assign(`/game?mode=room&room=${encodeURIComponent(room.id)}&players=${count}`);
+    }catch(e){setError(e instanceof Error?e.message:'Không thể bắt đầu trận.');}
   };
+
 
   if (!profile) {
     return (

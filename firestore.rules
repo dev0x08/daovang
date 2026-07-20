@@ -2,23 +2,81 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
+    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+    function roomMember(data) { return signedIn() && data.players is list && data.players.size() > 0 && data.players.hasAny([{'uid': request.auth.uid}]); }
+    function validRoomShape(data) {
+      return data.code is string && data.code.size() == 6
+        && data.name is string && data.name.size() >= 3 && data.name.size() <= 40
+        && data.hostId is string
+        && data.status in ['waiting','started']
+        && data.visibility in ['public','private']
+        && data.maxPlayers == 6
+        && data.players is list && data.players.size() >= 1 && data.players.size() <= 6;
+    }
+
     match /users/{uid} {
       allow read: if signedIn();
-      allow create, update: if signedIn() && request.auth.uid == uid;
+      allow create: if isSelf(uid)
+        && request.resource.data.uid == uid
+        && request.resource.data.coins == 500
+        && request.resource.data.exp == 0
+        && request.resource.data.wins == 0
+        && request.resource.data.losses == 0
+        && request.resource.data.gamesPlayed == 0;
+      // This blocks edits to identity ownership and rejects impossible/negative values.
+      // Economy is still client-driven in this prototype; production rewards should move to Cloud Functions.
+      allow update: if isSelf(uid)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.coins is int && request.resource.data.coins >= 0 && request.resource.data.coins <= 1000000
+        && request.resource.data.exp is int && request.resource.data.exp >= 0 && request.resource.data.exp <= 10000000
+        && request.resource.data.wins is int && request.resource.data.wins >= 0
+        && request.resource.data.losses is int && request.resource.data.losses >= 0
+        && request.resource.data.gamesPlayed == request.resource.data.wins + request.resource.data.losses
+        && request.resource.data.onlineSecondsToday is int && request.resource.data.onlineSecondsToday >= 0 && request.resource.data.onlineSecondsToday <= 86400
+        && request.resource.data.dailyChats is int && request.resource.data.dailyChats >= 0 && request.resource.data.dailyChats <= 500;
+      allow delete: if false;
       match /completedMatches/{matchId} {
-        allow read, create: if signedIn() && request.auth.uid == uid;
+        allow read: if isSelf(uid);
+        allow create: if isSelf(uid)
+          && !exists(/databases/$(database)/documents/users/$(uid)/completedMatches/$(matchId))
+          && request.resource.data.won is bool
+          && request.resource.data.reward.exp is int
+          && request.resource.data.reward.coins is int
+          && request.resource.data.reward.exp >= 0 && request.resource.data.reward.exp <= 500
+          && request.resource.data.reward.coins >= 0 && request.resource.data.reward.coins <= 500;
         allow update, delete: if false;
       }
     }
+
     match /rooms/{roomId} {
-      allow read, create, update, delete: if signedIn();
+      allow read: if signedIn();
+      allow create: if signedIn() && validRoomShape(request.resource.data)
+        && request.resource.data.hostId == request.auth.uid
+        && request.resource.data.players.size() == 1
+        && request.resource.data.players[0].uid == request.auth.uid;
+      allow update: if signedIn() && validRoomShape(request.resource.data)
+        && request.resource.data.hostId == resource.data.hostId
+        && request.resource.data.code == resource.data.code
+        && request.resource.data.maxPlayers == resource.data.maxPlayers
+        && (
+          request.auth.uid == resource.data.hostId
+          || (resource.data.status == 'waiting' && request.resource.data.status == 'waiting'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players']))
+        );
+      allow delete: if signedIn() && request.auth.uid == resource.data.hostId;
+
       match /messages/{messageId} {
         allow read: if signedIn();
         allow create: if signedIn()
+          && request.resource.data.keys().hasOnly(['uid','displayName','photoURL','text','createdAt'])
           && request.resource.data.uid == request.auth.uid
+          && request.resource.data.displayName is string && request.resource.data.displayName.size() <= 60
+          && request.resource.data.photoURL is string && request.resource.data.photoURL.size() <= 500
           && request.resource.data.text is string
           && request.resource.data.text.size() > 0
-          && request.resource.data.text.size() <= 300;
+          && request.resource.data.text.size() <= 300
+          && request.resource.data.createdAt == request.time;
         allow update, delete: if false;
       }
     }
