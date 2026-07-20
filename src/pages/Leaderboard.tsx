@@ -1,4 +1,14 @@
-import { Crown, Hammer, Medal, Moon, Pickaxe, Trophy, UserRoundSearch } from 'lucide-react';
-const data=[['Râu Vàng','Kim Cương I',1842,64],['Luna Miner','Bạch Kim II',1610,58],['Mắt Sói','Bạch Kim III',1498,55],['Búa Sắt','Vàng I',1280,51],['Digger 09','Vàng II',1194,48]];
-const RankIcon=({index}:{index:number})=>{const Icon=[Crown,Moon,UserRoundSearch,Hammer,Pickaxe][index]||Pickaxe;return <Icon aria-hidden="true"/>};
-export default function Leaderboard(){return <section className="ranking-page"><div className="section-heading"><span>MÙA GIẢI 01</span><h1>BẢNG XẾP HẠNG</h1><p>Những người chơi có thành tích xuất sắc nhất trong hầm mỏ.</p></div><div className="podium"><div className="pod p2"><Medal/><b>{data[1][0]}</b><span>{data[1][2]} EXP</span></div><div className="pod p1"><Crown/><b>{data[0][0]}</b><span>{data[0][2]} EXP</span></div><div className="pod p3"><Trophy/><b>{data[2][0]}</b><span>{data[2][2]} EXP</span></div></div><div className="ranking-table"><div className="rank-head"><span>HẠNG</span><span>NGƯỜI CHƠI</span><span>RANK</span><span>EXP</span><span>WIN RATE</span></div>{data.map((x,i)=><div className="rank-row" key={String(x[0])}><b>#{i+1}</b><span className="rank-user"><i><RankIcon index={i}/></i>{x[0]}</span><span>{x[1]}</span><span>{x[2]}</span><span>{x[3]}%</span></div>)}</div></section>}
+import { useEffect, useState } from 'react';
+import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
+import { Crown, Medal, Trophy } from 'lucide-react';
+import { db } from '../lib/firebase';
+import { levelFromExp } from '../lib/progression';
+import { Equipped } from '../context/AuthContext';
+import PlayerIdentity from '../components/PlayerIdentity';
+
+type Row={uid:string;displayName:string;photoURL:string;rank:string;exp:number;wins:number;gamesPlayed:number;equipped?:Equipped};
+export default function Leaderboard(){
+ const[data,setData]=useState<Row[]>([]);const[loading,setLoading]=useState(true);
+ useEffect(()=>{(async()=>{if(!db){setLoading(false);return;}try{const snap=await getDocs(query(collection(db,'users'),orderBy('exp','desc'),limit(100)));setData(snap.docs.map(d=>({uid:d.id,displayName:'Người chơi',photoURL:'',rank:'Đồng',exp:0,wins:0,gamesPlayed:0,equipped:{},...d.data()} as Row)))}finally{setLoading(false)}})()},[]);
+ return <section className="ranking-page"><div className="section-heading"><span>XẾP HẠNG TOÀN MÁY CHỦ</span><h1>BẢNG XẾP HẠNG NGƯỜI CHƠI</h1><p>Dữ liệu được lấy trực tiếp từ hồ sơ người dùng và hiển thị toàn bộ vật phẩm trang trí đang trang bị.</p></div>{loading?<div className="panel empty-state">Đang tải bảng xếp hạng...</div>:<><div className="podium">{data.slice(0,3).map((x,i)=>{const Icon=i===0?Crown:i===1?Medal:Trophy;return <div className={`pod p${i+1}`} key={x.uid}><Icon/><PlayerIdentity player={{name:x.displayName,photoURL:x.photoURL,rank:x.rank,equipped:x.equipped}}/><span>{x.exp} EXP</span></div>})}</div><div className="ranking-table"><div className="rank-head"><span>HẠNG</span><span>NGƯỜI CHƠI</span><span>LEVEL</span><span>EXP</span><span>THẮNG</span></div>{data.map((x,i)=><div className="rank-row" key={x.uid}><b>#{i+1}</b><PlayerIdentity compact player={{name:x.displayName,photoURL:x.photoURL,rank:x.rank,equipped:x.equipped}}/><span>Level {levelFromExp(x.exp)}</span><span>{x.exp}</span><span>{x.wins}/{x.gamesPlayed}</span></div>)}</div></>}</section>
+}
