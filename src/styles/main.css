@@ -964,3 +964,35 @@
   .game-card .tunnel-svg{width:44px!important;height:44px!important}.game-card .action-art{height:45px!important}
   .right-sidebar{height:155px!important;min-height:155px!important}
 }
+
+/* V17 — restore persistent log/chat sidebar and always-visible role HUD badge */
+.hud-status{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0}
+.role-hud-badge{display:inline-grid;grid-template-columns:auto auto;grid-template-rows:auto auto;align-items:center;column-gap:7px;min-height:38px;padding:6px 10px;border:1px solid #6d5924;background:linear-gradient(135deg,#221a0c,#0d120d);color:#f2c862;box-shadow:inset 0 0 18px rgba(215,166,48,.08),0 6px 18px rgba(0,0,0,.28);white-space:nowrap}
+.role-hud-badge svg{grid-row:1 / 3;width:18px;height:18px;stroke-width:2.2}
+.role-hud-badge span{font-size:7px;letter-spacing:1.4px;color:#a99f87;line-height:1}
+.role-hud-badge b{font-family:'Barlow Condensed';font-size:16px;letter-spacing:.9px;line-height:1}
+.role-hud-badge.wolf{border-color:#783a35;background:linear-gradient(135deg,#2a1110,#0d120d);color:#ff9a91}
+.role-hud-badge.miner{border-color:#76601f;color:#f2c862}
+
+@media(max-width:1050px){
+  .right-sidebar{display:flex!important;visibility:visible!important;opacity:1!important;min-height:220px;height:220px;position:static!important}
+  .game-layout-v4{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) 220px;align-items:stretch!important}
+  .hand-area{width:100%!important;max-width:100%!important}
+}
+
+@media(max-width:760px){
+  .hud-status{gap:5px;min-width:0}
+  .role-hud-badge{min-height:34px;padding:4px 7px;column-gap:5px}
+  .role-hud-badge svg{width:15px;height:15px}
+  .role-hud-badge span{font-size:6px;letter-spacing:.8px}
+  .role-hud-badge b{font-size:12px;letter-spacing:.5px}
+  .right-sidebar{display:flex!important;visibility:visible!important;opacity:1!important;height:190px!important;min-height:190px!important;width:100%!important}
+  .sidebar-panel.is-active{display:block!important;visibility:visible!important;opacity:1!important}
+  .log-panel.compact .log-list{height:100%!important;overflow-y:auto!important}
+}
+
+@media(max-width:420px){
+  .role-hud-badge span{display:none}
+  .role-hud-badge{grid-template-columns:auto auto;grid-template-rows:auto;min-width:64px}
+  .role-hud-badge svg{grid-row:auto}.role-hud-badge b{font-size:11px}
+}
