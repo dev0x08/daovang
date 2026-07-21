@@ -1,0 +1,2 @@
+import { Navigate, useLocation } from 'react-router-dom';import { useAuth } from '../context/AuthContext';
+export default function ProtectedRoute({children}:{children:React.ReactNode}){const{profile,loading}=useAuth();const location=useLocation();if(loading)return <section className="center-page"><div className="auth-card"><h1>ĐANG TẢI...</h1></div></section>;if(!profile)return <Navigate to="/login" replace state={{from:location.pathname+location.search}}/>;return <>{children}</>}
