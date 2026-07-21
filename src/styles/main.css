@@ -1935,3 +1935,91 @@ input,select,textarea,.wallet,.badge,.status-pill,.turn-pill,.ping-badge,
   .game-log-row{grid-template-columns:28px 1fr;padding:3px 5px;gap:5px}.game-log-icon{width:24px;height:24px}.game-log-icon svg{width:14px;height:14px}.game-log-copy b{font-size:8px}.game-log-copy small{font-size:7px}
 }
 
+/* Portrait game layout. Keep this last: the game HUD has several historical
+   tablet overrides above, so phones need one authoritative flow layout. */
+@media (max-width:760px) and (orientation:portrait){
+  body:has(.game-page){overflow-y:auto!important}
+  .game-page{
+    width:100%!important;
+    height:auto!important;
+    min-height:calc(100dvh - 62px)!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:8px!important;
+    padding:6px 6px max(10px,env(safe-area-inset-bottom))!important;
+    overflow:visible!important;
+  }
+  .game-top{
+    order:1!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:58px!important;
+    margin:0!important;
+    padding:6px 8px!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    grid-template-rows:auto auto!important;
+    gap:4px 8px!important;
+  }
+  .game-top>div:first-child{min-width:0!important}.game-top>div:first-child>span{font-size:7px!important;letter-spacing:1px!important}
+  .game-top>div:first-child h1{font-size:17px!important;line-height:1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .hud-status{grid-column:1/-1!important;grid-row:2!important;display:block!important}
+  .turn-pill{width:100%!important;min-width:0!important;min-height:34px!important;padding:5px 8px!important;justify-content:center!important;font-size:11px!important}
+  .game-actions{grid-column:2!important;grid-row:1!important;gap:3px!important}
+  .game-actions .ping-badge{height:30px!important;padding:0 6px!important}.game-actions .btn{width:30px!important;min-width:30px!important;min-height:30px!important;padding:0!important}.game-actions .btn span{display:none!important}
+
+  .game-layout-v5{
+    order:2!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:8px!important;
+    overflow:visible!important;
+  }
+  .board-wrap{order:1!important;width:100%!important;height:auto!important;min-height:0!important;overflow:visible!important}
+  .board-wrap>.mine-board-shell.dynamic{
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    aspect-ratio:1.72/1!important;
+    display:grid!important;
+    grid-template-columns:28px minmax(0,1fr) 36px!important;
+    grid-template-rows:minmax(0,1fr)!important;
+    gap:2px!important;
+    padding:4px!important;
+    overflow:hidden!important;
+  }
+  .board-wrap>.mine-board-shell.dynamic>.mine-entrance{display:flex!important;width:28px!important;min-width:28px!important;max-width:28px!important;height:100%!important}.mine-entrance>span{width:24px!important;height:24px!important}.mine-entrance>span svg{width:14px!important;height:14px!important}.mine-entrance>b{display:none!important}
+  .board-wrap>.mine-board-shell.dynamic>.dynamic-board{min-width:0!important;width:100%!important;height:100%!important;gap:2px!important}
+  .board-wrap>.mine-board-shell.dynamic>.treasure-column{width:36px!important;min-width:36px!important;max-width:36px!important;padding-left:2px!important;gap:2px!important}
+  .treasure-column.compact .treasure-slot span{width:27px!important;height:27px!important}.treasure-column.compact .treasure-slot svg{width:15px!important;height:15px!important}
+  .dynamic-board .cell{border-radius:3px!important}.dynamic-board .cell .tunnel-svg{max-width:100%!important;max-height:100%!important}.grid-coord{font-size:5px!important}.obstacle-art.cliff>b{display:none!important}
+  .board-help{height:auto!important;min-height:18px!important;padding:3px 2px!important;font-size:7px!important;white-space:normal!important}
+
+  .battle-right-column{order:2!important;width:100%!important;height:auto!important;display:grid!important;grid-template-rows:180px auto!important;gap:8px!important;overflow:visible!important}
+  .battle-journal{height:180px!important;min-height:180px!important}.battle-journal>.sidebar-tabs{height:36px!important;min-height:36px!important}
+  .battle-path-panel{width:100%!important;height:auto!important;min-height:210px!important;max-height:none!important;grid-template-rows:26px 160px 28px!important;padding:5px!important}
+  .battle-path-panel .vertical-path-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:repeat(2,1fr)!important;gap:4px!important;padding-bottom:4px!important}
+  .battle-path-panel .vertical-path-card{grid-template-columns:34px minmax(0,1fr)!important;padding:3px!important;gap:3px!important}.battle-path-panel .vertical-card-art,.battle-path-panel .vertical-card-art .tunnel-svg{width:31px!important;height:31px!important}.battle-path-panel .vertical-card-copy b{font-size:7px!important}.battle-path-panel .vertical-card-copy em,.battle-path-panel .vertical-card-copy small{display:none!important}
+
+  .redesigned-bottom-hud{
+    order:3!important;
+    position:static!important;
+    inset:auto!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:8px!important;
+    padding:5px!important;
+  }
+  .player-progress-card{width:100%!important;height:86px!important;grid-template-columns:60px minmax(0,1fr)!important;padding:6px 9px!important}.progress-avatar-wrap,.progress-avatar{width:54px!important;height:54px!important}.progress-name-line>b{font-size:17px!important}
+  .bottom-special-hand{width:100%!important;height:auto!important;min-height:112px!important;display:grid!important;grid-template-rows:24px 84px!important;padding:4px!important;overflow:hidden!important}.bottom-special-hand>header{display:flex!important}.bottom-special-hand>header small{display:none!important}
+  .bottom-special-grid{width:100%!important;height:84px!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;padding:0!important}
+  .bottom-special-card{width:100%!important;height:80px!important;min-width:0!important;grid-template-columns:22px minmax(0,1fr)!important;padding:3px!important;gap:2px!important}.bottom-special-card>svg{width:18px!important}.bottom-special-card b{font-size:8px!important;white-space:normal!important}.bottom-special-card small{display:none!important}.bottom-special-card em{width:15px!important;height:15px!important;font-size:7px!important;right:2px!important;top:2px!important}
+}
+
