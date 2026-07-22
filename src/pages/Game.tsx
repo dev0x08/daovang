@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Ban, Bot, Box, Clock3, Coins, DoorOpen, Expand, Gem, Hammer, HeartPulse, HelpCircle, MessageCircle, Minimize, Mountain, Pickaxe, RefreshCcw, RotateCcw, Search, Shield, ShieldPlus, Sparkles, Target, Trash2, Trophy, UserRound, Settings, X } from 'lucide-react';
+import { Ban, Bot, Box, Clock3, Coins, DoorOpen, Expand, Gem, Hammer, HeartPulse, HelpCircle, Minimize, Mountain, Pickaxe, RefreshCcw, RotateCcw, Search, Shield, ShieldPlus, Sparkles, Trash2, Trophy, UserRound, Settings, X } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { botMove, Card, discardCard, GameState, GOLD_MINE_MAP, isValidPlacement, newGame, placeCard, scoutTreasure, useAction, dirs, PathKind, SpecialKind, useBlock, useRevive, useSwap, useSabotage, placementReason } from '../lib/game';
+import { Card, discardCard, GameState, GOLD_MINE_MAP, isValidPlacement, newGame, placeCard, scoutTreasure, useAction, dirs, PathKind, SpecialKind, useBlock, useRevive, useSwap, useSabotage, placementReason } from '../lib/game';
+import { botMoveWithDeckActions as botMove } from '../lib/gameBot';
 import { useAuth } from '../context/AuthContext';
 import { MatchReward, rollMatchReward, levelFromExp, expForLevel } from '../lib/progression';
 import PlayerIdentity from '../components/PlayerIdentity';
@@ -11,7 +12,7 @@ import ChatPanel from '../components/ChatPanel';
 
 function TunnelSvg({card,small=false}:{card:Card;small?:boolean}){
  if(card.type==='action'){
-  const Icon=card.kind==='delete'?Hammer:card.kind==='shield'?ShieldPlus:card.kind==='rotate'?RotateCcw:Search;
+  const Icon=card.kind==='delete'?Hammer:card.kind==='shield'?ShieldPlus:card.kind==='rotate'?RotateCcw:card.kind==='block'?Ban:card.kind==='revive'?HeartPulse:card.kind==='swap'?RefreshCcw:Search;
   return <span className="action-art"><Icon aria-hidden="true"/></span>;
  }
  const open=dirs(card.kind as PathKind,card.rotation);const w=small?54:78;
@@ -25,13 +26,9 @@ function TunnelSvg({card,small=false}:{card:Card;small?:boolean}){
 }
 function Tunnel({x1,y1,x2,y2}:{x1:number;y1:number;x2:number;y2:number}){return <g><line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#100d09" strokeWidth="25"/><line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#d09a35" strokeWidth="3" strokeDasharray="8 7"/></g>}
 
-function GameLogRow({message}:{message:string}){
- return <div className="game-log-row"><span className="game-log-icon"><Settings aria-hidden="true"/></span><span className="game-log-copy"><b>Thông báo</b><small>{message}</small></span></div>;
-}
-
 export default function Game(){
  const{profile,completeMatch}=useAuth();const navigate=useNavigate();const[searchParams]=useSearchParams();const gameRef=useRef<HTMLElement>(null);const logRef=useRef<HTMLDivElement>(null);
-  const matchStartedAt=useRef(Date.now());const[ping,setPing]=useState<number|null>(null);const[reportTarget,setReportTarget]=useState<number|null>(null);const[reportReason,setReportReason]=useState('AFK');const[reportMessage,setReportMessage]=useState('');const[state,setState]=useState<GameState>(()=>{const total=Math.min(8,Math.max(6,Number(searchParams.get('players')||6)));return newGame(profile?.displayName||'Bạn',total-1,GOLD_MINE_MAP)});const[selected,setSelected]=useState<number|null>(null);const[isFullscreen,setIsFullscreen]=useState(false);const[aiThinking,setAiThinking]=useState(false);const[showFullscreenPrompt,setShowFullscreenPrompt]=useState(()=>localStorage.getItem('goldmine-fullscreen-choice')!=='normal');const[rememberFullscreen,setRememberFullscreen]=useState(false);const[sidebarTab,setSidebarTab]=useState<'log'|'chat'>('log');const[showPlayersModal,setShowPlayersModal]=useState(false);const[showLeaveConfirm,setShowLeaveConfirm]=useState(false);const[special,setSpecial]=useState<SpecialKind|null>(null);const[targetPlayer,setTargetPlayer]=useState<number|null>(null);const[mySwapCard,setMySwapCard]=useState<number|null>(null);const[sabotageMode,setSabotageMode]=useState(false);const[statsSaved,setStatsSaved]=useState(false);const[matchRewards,setMatchRewards]=useState<Record<string,MatchReward>|null>(null);
+  const matchStartedAt=useRef(Date.now());const[ping,setPing]=useState<number|null>(null);const[reportTarget,setReportTarget]=useState<number|null>(null);const[reportReason,setReportReason]=useState('AFK');const[reportMessage,setReportMessage]=useState('');const[state,setState]=useState<GameState>(()=>{const total=Math.min(8,Math.max(6,Number(searchParams.get('players')||6)));return newGame(profile?.displayName||'Bạn',total-1,GOLD_MINE_MAP)});const[selected,setSelected]=useState<number|null>(null);const[isFullscreen,setIsFullscreen]=useState(false);const[aiThinking,setAiThinking]=useState(false);const[showFullscreenPrompt,setShowFullscreenPrompt]=useState(()=>localStorage.getItem('goldmine-fullscreen-choice')!=='normal');const[rememberFullscreen,setRememberFullscreen]=useState(false);const[showPlayersModal,setShowPlayersModal]=useState(false);const[showLeaveConfirm,setShowLeaveConfirm]=useState(false);const[special,setSpecial]=useState<SpecialKind|null>(null);const[targetPlayer,setTargetPlayer]=useState<number|null>(null);const[mySwapCard,setMySwapCard]=useState<number|null>(null);const[sabotageMode,setSabotageMode]=useState(false);const[statsSaved,setStatsSaved]=useState(false);const[matchRewards,setMatchRewards]=useState<Record<string,MatchReward>|null>(null);
 
  const[roomAccess,setRoomAccess]=useState<'checking'|'allowed'|'denied'>(()=>searchParams.get('mode')==='room'?'checking':'allowed');
  const[showOrientationHint,setShowOrientationHint]=useState(()=>localStorage.getItem('goldmine-orientation-hint')!=='dismissed');
@@ -45,15 +42,15 @@ export default function Game(){
   useEffect(()=>{if(current?.isBot&&!state.winner){setAiThinking(true);const delay=2500+Math.random()*1000;const t=setTimeout(()=>{setState(s=>botMove(s));setAiThinking(false)},delay);return()=>{clearTimeout(t);setAiThinking(false)}}},[state.turn,state.winner]);
   useEffect(()=>{if(!state.winner||matchRewards)return;const rewards:Record<string,MatchReward>={};for(const player of state.players){const won=state.winner===(player.role==='miner'?'miners':'wolves');rewards[player.id]=rollMatchReward(won,player.score)}setMatchRewards(rewards)},[state.winner,state.matchId,matchRewards]);
   useEffect(()=>{if(!state.winner||!matchRewards||statsSaved)return;const reward=matchRewards[human.id];if(!reward)return;setStatsSaved(true);void completeMatch(state.winner===(human.role==='miner'?'miners':'wolves'),state.matchId,reward,{role:human.role,turns:state.logs.length,durationSeconds:Math.floor((Date.now()-matchStartedAt.current)/1000),opponents:state.players.slice(1).map(p=>p.name)})},[state.winner,statsSaved,state.matchId,matchRewards,human.id,human.role,completeMatch]);
- useEffect(()=>{const frame=requestAnimationFrame(()=>{const el=logRef.current;if(!el)return;el.scrollTop=0;});return()=>cancelAnimationFrame(frame)},[state.logs,sidebarTab]);
+ useEffect(()=>{const frame=requestAnimationFrame(()=>{const el=logRef.current;if(!el)return;el.scrollTop=0;});return()=>cancelAnimationFrame(frame)},[state.logs]);
  const chooseFullscreen=async(full:boolean)=>{if(rememberFullscreen)localStorage.setItem('goldmine-fullscreen-choice',full?'fullscreen':'normal');setShowFullscreenPrompt(false);if(full)await toggleFullscreen()};
  const dismissOrientationHint=()=>{localStorage.setItem('goldmine-orientation-hint','dismissed');setShowOrientationHint(false)};
   const playable=state.turn===0&&!state.winner&&!aiThinking;const selectedCard=selected===null?null:human.hand[selected];
- const select=(i:number)=>{if(playable){setSabotageMode(false);setSelected(selected===i?null:i)}};
+ const select=(i:number)=>{if(!playable)return;setSabotageMode(false);const card=human.hand[i];if(card?.kind==='block'||card?.kind==='revive'||card?.kind==='swap'){setSelected(i);setSpecial(card.kind);setTargetPlayer(null);setMySwapCard(null);return}setSelected(selected===i?null:i)};
  const discardSelected=()=>{if(!playable||selected===null)return;const next=discardCard(state,0,selected);if(next!==state){setState(next);setSelected(null)}};
   const clickCell=(r:number,c:number)=>{if(!playable)return;if(sabotageMode){const next=useSabotage(state,0,r,c);if(next!==state){setState(next);setSabotageMode(false)}return}if(selected===null)return;const next=selectedCard?.type==='path'?placeCard(state,0,selected,r,c):useAction(state,0,selected,r,c);if(next!==state){setState(next);setSelected(null)}};
- const useSpecialTarget=(target:number)=>{if(!special||!playable)return;if(special==='block'){const next=useBlock(state,0,target);if(next!==state){setState(next);setSpecial(null)}}else if(special==='revive'){const next=useRevive(state,0,target);if(next!==state){setState(next);setSpecial(null)}}else setTargetPlayer(target)};
- const finishSwap=(targetCard:number)=>{if(targetPlayer===null||mySwapCard===null)return;const next=useSwap(state,0,mySwapCard,targetPlayer,targetCard);if(next!==state){setState(next);setSpecial(null);setTargetPlayer(null);setMySwapCard(null)}};
+ const useSpecialTarget=(target:number)=>{if(!special||!playable||selected===null)return;if(special==='block'){const next=useBlock(state,0,target,selected);if(next!==state){setState(next);setSelected(null);setSpecial(null)}}else if(special==='revive'){const next=useRevive(state,0,target,selected);if(next!==state){setState(next);setSelected(null);setSpecial(null)}}else setTargetPlayer(target)};
+ const finishSwap=(targetCard:number)=>{if(targetPlayer===null||mySwapCard===null||selected===null)return;const next=useSwap(state,0,mySwapCard,targetPlayer,targetCard,selected);if(next!==state){setState(next);setSelected(null);setSpecial(null);setTargetPlayer(null);setMySwapCard(null)}};
  const clickTreasure=(id:string)=>{if(!playable||selected===null||selectedCard?.kind!=='scout')return;const next=scoutTreasure(state,0,selected,id);if(next!==state){setState(next);setSelected(null)}};
  const leaveTable=async()=>{if(document.fullscreenElement)await document.exitFullscreen().catch(()=>{});navigate('/room')};
  const roleText=human.role==='miner'?'THỢ ĐÀO':'SÓI';
@@ -74,9 +71,8 @@ export default function Game(){
       <div className="board-help">Bàn {state.map.cols}×{state.map.rows} · Không thể đặt hoặc phá đường trên ô đá.</div>
     </main>
     <aside className="battle-right-column">
-      <section className="battle-journal panel">
-        <div className="sidebar-tabs"><button type="button" className={sidebarTab==='log'?'active':''} onClick={()=>setSidebarTab('log')}><Target/> NHẬT KÝ</button><button type="button" className={sidebarTab==='chat'?'active':''} onClick={()=>setSidebarTab('chat')}><MessageCircle/> CHAT</button></div>
-        <div className="sidebar-panels"><section className={`sidebar-panel log-panel compact ${sidebarTab==='log'?'is-active':'is-left'}`}><div className="log-list notification-log" ref={logRef}>{state.logs.slice(0,6).map((x,i)=><GameLogRow key={`${i}-${x}`} message={x}/>)}</div></section><section className={`sidebar-panel chat-sidebar-panel ${sidebarTab==='chat'?'is-active':'is-right'}`}><ChatPanel compact roomId={searchParams.get('room')||`match-${state.matchId}`}/></section></div>
+      <section className="battle-journal panel" ref={logRef}>
+        <ChatPanel compact systemMessages={state.logs.slice(0,20)} roomId={searchParams.get('room')||`match-${state.matchId}`}/>
       </section>
       <section className={`battle-path-panel ${!playable?'disabled':''}`}>
         <header><span>HƯỚNG ĐI</span><small>{sabotageMode?'Chọn đường cần phá':selected===null?'Chọn một lá để sử dụng':human.hand[selected]?.label}</small></header>
@@ -90,15 +86,10 @@ export default function Game(){
       <div className="progress-avatar-wrap"><span className="progress-avatar">{profile?.photoURL?<img src={profile.photoURL} alt=""/>:<UserRound/>}</span><i className="online-dot"/></div>
       <div className="progress-player-copy"><div className="progress-name-line"><b>{human.name}</b><span><Sparkles/> LV. {playerLevel}</span></div><strong className={human.role}>{roleText}</strong><div className="exp-values"><small>{playerExp.toLocaleString('vi-VN')} / {levelEnd.toLocaleString('vi-VN')}</small></div><div className="exp-track"><i style={{width:`${levelProgress}%`}}/></div></div>
     </section>
-    <section className="bottom-special-hand">
-      <header><span>BÀI ĐẶC BIỆT</span><small>Chọn kỹ năng để sử dụng trong lượt</small></header>
-      <div className="bottom-special-grid">
-        {human.canSabotage&&<button className={`bottom-special-card sabotage ${sabotageMode?'selected':''}`} disabled={!playable||human.sabotageUsed} onClick={()=>{setSelected(null);setSabotageMode(v=>!v)}}><Hammer/><span><b>PHÁ ĐƯỜNG</b><small>Phá một đường đã đặt</small></span><em>{human.sabotageUsed?0:1}</em></button>}
-        <button className="bottom-special-card block" disabled={!playable||human.specialUsed.block} onClick={()=>setSpecial('block')}><Ban/><span><b>CHẶN</b><small>Khóa lượt đối thủ</small></span><em>{human.specialUsed.block?0:1}</em></button>
-        <button className="bottom-special-card revive" disabled={!playable||human.specialUsed.revive} onClick={()=>setSpecial('revive')}><HeartPulse/><span><b>HỒI SINH</b><small>Giải trạng thái chặn</small></span><em>{human.specialUsed.revive?0:1}</em></button>
-        <button className="bottom-special-card swap" disabled={!playable||human.specialUsed.swap} onClick={()=>setSpecial('swap')}><RefreshCcw/><span><b>ĐỔI BÀI</b><small>Đổi một lá bài úp</small></span><em>{human.specialUsed.swap?0:1}</em></button>
-      </div>
-    </section>
+    {human.canSabotage&&<section className="bottom-special-hand wolf-only-skill">
+      <header><span>KỸ NĂNG SÓI</span><small>Kỹ năng bí mật dùng một lần</small></header>
+      <div className="bottom-special-grid"><button className={`bottom-special-card sabotage ${sabotageMode?'selected':''}`} disabled={!playable||human.sabotageUsed} onClick={()=>{setSelected(null);setSabotageMode(v=>!v)}}><Hammer/><span><b>PHÁ ĐƯỜNG</b><small>Phá một đường đã đặt</small></span></button></div>
+    </section>}
   </footer>
 
   {state.winner&&matchRewards&&<div className="match-summary-modal"><div className="match-summary-card"><header><div><span className="eyebrow">TỔNG KẾT TRẬN ĐẤU</span><h2>{state.winner==='miners'?'THỢ ĐÀO CHIẾN THẮNG':'SÓI CHIẾN THẮNG'}</h2><p>Vai trò đã được công khai. Vàng và EXP chỉ được cộng sau khi trận hoàn tất.</p></div><Trophy aria-hidden="true"/></header><div className="match-summary-table"><div className="summary-head"><span>NGƯỜI CHƠI</span><span>VAI TRÒ</span><span>KẾT QUẢ</span><span>VÀNG</span><span>EXP</span></div>{state.players.map((p,i)=>{const won=state.winner===(p.role==='miner'?'miners':'wolves');const reward=matchRewards[p.id];return <div className={`summary-row ${i===0?'is-you':''} ${won?'is-winner':''}`} key={p.id}><span className="summary-player"><i>{p.isBot?<Bot aria-hidden="true"/>:<UserRound aria-hidden="true"/>}</i><b>{p.name}{i===0?' (Bạn)':''}</b></span><span><strong className={`role-chip ${p.role}`}>{p.role==='miner'?'THỢ ĐÀO':p.canSabotage?'SÓI PHÁ HẦM':'SÓI'}</strong></span><span><strong className={won?'result-win':'result-loss'}>{won?'THẮNG':'THUA'}</strong></span><span className="reward-value coins"><Coins/> +{reward.coins}</span><span className="reward-value exp"><Sparkles/> +{reward.exp}</span></div>})}</div><footer><div className="your-reward"><small>PHẦN THƯỞNG CỦA BẠN</small><b><Coins/> +{matchRewards[human.id].coins} vàng</b><b><Sparkles/> +{matchRewards[human.id].exp} EXP</b><span>{statsSaved?'Đã ghi nhận vào hồ sơ.':'Đang ghi nhận phần thưởng...'}</span></div><button className="btn btn-primary" onClick={()=>void leaveTable()}>HOÀN TẤT & RỜI BÀN</button></footer></div></div>}

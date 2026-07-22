@@ -1,7 +1,7 @@
 export type Role = 'miner' | 'wolf';
 export type Direction = 'U' | 'R' | 'D' | 'L';
 export type PathKind = 'h'|'v'|'ne'|'nw'|'se'|'sw'|'tUp'|'tDown'|'tLeft'|'tRight'|'cross'|'collapse';
-export type ActionKind = 'delete'|'rotate'|'shield'|'scout';
+export type ActionKind = 'delete'|'rotate'|'shield'|'scout'|'block'|'revive'|'swap';
 export type SpecialKind = 'block'|'revive'|'swap';
 export type Card = { id:string; type:'path'|'action'; kind:PathKind|ActionKind; label:string; rotation:number };
 export type Cell = { card:Card; owner:string; shield?:boolean } | null;
@@ -29,12 +29,13 @@ const defs:Record<PathKind|ActionKind,{label:string;type:'path'|'action'}>={
  h:{label:'Đường ngang',type:'path'},v:{label:'Đường dọc',type:'path'},
  ne:{label:'Góc trên phải',type:'path'},nw:{label:'Góc trên trái',type:'path'},se:{label:'Góc dưới phải',type:'path'},sw:{label:'Góc dưới trái',type:'path'},
  tUp:{label:'Ngã ba lên',type:'path'},tDown:{label:'Ngã ba xuống',type:'path'},tLeft:{label:'Ngã ba trái',type:'path'},tRight:{label:'Ngã ba phải',type:'path'},cross:{label:'Ngã tư',type:'path'},collapse:{label:'Sập hầm',type:'path'},
- delete:{label:'Phá đường',type:'action'},rotate:{label:'Chuyển hướng',type:'action'},shield:{label:'Gia cố hầm',type:'action'},scout:{label:'Thăm dò rương',type:'action'}
+ delete:{label:'Phá đường',type:'action'},rotate:{label:'Chuyển hướng',type:'action'},shield:{label:'Gia cố hầm',type:'action'},scout:{label:'Thăm dò rương',type:'action'},
+ block:{label:'Chặn',type:'action'},revive:{label:'Hồi sinh',type:'action'},swap:{label:'Đổi bài',type:'action'}
 };
 const make=(kind:PathKind|ActionKind,rotation=0):Card=>({id:uid(),kind,label:defs[kind].label,type:defs[kind].type,rotation});
 const add=(arr:Card[],kind:PathKind|ActionKind,count:number)=>{for(let i=0;i<count;i++)arr.push(make(kind,kind==='collapse'?Math.floor(Math.random()*4)*90:0))};
 const shuffle=<T,>(items:T[])=>{const a=[...items];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-export const createDeck=()=>{const d:Card[]=[];add(d,'h',22);add(d,'v',12);(['ne','nw','se','sw'] as PathKind[]).forEach(k=>add(d,k,8));(['tUp','tDown','tLeft','tRight'] as PathKind[]).forEach(k=>add(d,k,5));add(d,'cross',8);add(d,'collapse',8);add(d,'delete',10);add(d,'shield',7);add(d,'rotate',7);add(d,'scout',7);return shuffle(d)};
+export const createDeck=()=>{const d:Card[]=[];add(d,'h',22);add(d,'v',12);(['ne','nw','se','sw'] as PathKind[]).forEach(k=>add(d,k,8));(['tUp','tDown','tLeft','tRight'] as PathKind[]).forEach(k=>add(d,k,5));add(d,'cross',8);add(d,'collapse',8);add(d,'delete',10);add(d,'shield',7);add(d,'rotate',7);add(d,'scout',7);add(d,'block',4);add(d,'revive',3);add(d,'swap',4);return shuffle(d)};
 const draw=(deck:Card[],n:number)=>deck.splice(0,Math.min(n,deck.length));
 
 export const dirs=(kind:PathKind,rotation=0):Direction[]=>{const base:Record<PathKind,Direction[]>={h:['L','R'],v:['U','D'],ne:['D','L'],nw:['D','R'],se:['U','L'],sw:['U','R'],tUp:['L','R','U'],tDown:['L','R','D'],tLeft:['U','D','L'],tRight:['U','D','R'],cross:['U','R','D','L'],collapse:['L']};const turns=((rotation%360)+360)%360/90;const order:Direction[]=['U','R','D','L'];return base[kind].map(d=>order[(order.indexOf(d)+turns)%4])};
@@ -55,10 +56,10 @@ export const isValidPlacement=(board:Cell[][],card:Card,row:number,col:number,ma
  if(card.type!=='path'||!inBoard(map,row,col)||board[row]?.[col]||obstacles.includes(key(row,col)))return false;
 
  const own=new Set(dirs(card.kind as PathKind,card.rotation));
- const reachable=reachableFromEntrance(board,map);
  const [entranceRow,entranceCol,entranceDirection]=entranceCell(map);
  const isEntranceCell=row===entranceRow&&col===entranceCol;
- let connectedToEntranceNetwork=false;
+ let hasAdjacentCard=false;
+ let connectedToEntrance=isEntranceCell&&own.has(entranceDirection);
 
  for(const d of ['U','R','D','L'] as Direction[]){
   const[dr,dc]=delta[d],nr=row+dr,nc=col+dc,opens=own.has(d);
@@ -67,23 +68,23 @@ export const isValidPlacement=(board:Cell[][],card:Card,row:number,col:number,ma
    // Mép bản đồ được xem là vách đá: một nhánh đường có thể kết thúc tại đây.
    // Chỉ cửa hầm mới tạo kết nối khởi đầu; các rương chỉ được mở khi mạng đường
    // từ cửa hầm thật sự chạm đúng vị trí rương trong resolveTreasures().
-   if(opens&&isEntranceCell&&d===entranceDirection)connectedToEntranceNetwork=true;
+   if(opens&&isEntranceCell&&d===entranceDirection)connectedToEntrance=true;
    continue;
   }
 
   const neighbor=board[nr][nc];
   if(!neighbor?.card)continue;
+  hasAdjacentCard=true;
   if(neighbor.card.type!=='path')return false;
 
   const neighborOpens=dirs(neighbor.card.kind as PathKind,neighbor.card.rotation).includes(opposite[d]);
   // Hai ô kề nhau phải khớp tuyệt đối: cùng mở hoặc cùng đóng ở cạnh tiếp xúc.
   if(opens!==neighborOpens)return false;
 
-  // Lá mới chỉ hợp lệ khi nối trực tiếp với một ô LIỀN KỀ đã thuộc mạng từ cửa hầm.
-  if(opens&&neighborOpens&&reachable.has(key(nr,nc)))connectedToEntranceNetwork=true;
  }
 
- return connectedToEntranceNetwork;
+ // Cửa hầm đóng vai trò lá bài gốc bên ngoài bàn, cho phép đặt lá đầu tiên.
+ return hasAdjacentCard||connectedToEntrance;
 };
 
 export const placementReason=(board:Cell[][],card:Card,row:number,col:number,map:MapConfig=GOLD_MINE_MAP,obstacles:string[]=[])=>{
@@ -92,23 +93,23 @@ export const placementReason=(board:Cell[][],card:Card,row:number,col:number,map
  if(board[row]?.[col])return 'Ô đã có mảnh đường.';
  if(obstacles.includes(key(row,col)))return 'Ô đang có chướng ngại vật.';
  const own=new Set(dirs(card.kind as PathKind,card.rotation));
- const reachable=reachableFromEntrance(board,map);
  const [entranceRow,entranceCol,entranceDirection]=entranceCell(map);
- let connected=false;
+ let hasAdjacentCard=false;
+ let connectedToEntrance=false;
  for(const d of ['U','R','D','L'] as Direction[]){
   const[dr,dc]=delta[d],nr=row+dr,nc=col+dc,opens=own.has(d);
   if(!inBoard(map,nr,nc)){
-   if(opens&&row===entranceRow&&col===entranceCol&&d===entranceDirection)connected=true;
+   if(opens&&row===entranceRow&&col===entranceCol&&d===entranceDirection)connectedToEntrance=true;
    continue;
   }
   const neighbor=board[nr][nc];
   if(!neighbor?.card)continue;
+  hasAdjacentCard=true;
   if(neighbor.card.type!=='path')return 'Ô kế bên không phải mảnh đường.';
   const neighborOpens=dirs(neighbor.card.kind as PathKind,neighbor.card.rotation).includes(opposite[d]);
   if(opens!==neighborOpens)return `Cạnh ${d} không khớp với mảnh kế bên.`;
-  if(opens&&reachable.has(key(nr,nc)))connected=true;
  }
- return connected?'Hợp lệ.':'Mảnh phải nối trực tiếp với mạng đường từ cửa hầm.';
+ return hasAdjacentCard||connectedToEntrance?'Hợp lệ.':'Mảnh phải tiếp giáp với ít nhất một lá đã có trên bàn.';
 };
 
 const refill=(s:GameState,p:Player)=>{if(s.deck.length)p.hand.push(...draw(s.deck,1))};
@@ -141,8 +142,8 @@ export const discardCard=(state:GameState,playerIndex:number,cardIndex:number):G
 
 export const useSabotage=(state:GameState,playerIndex:number,row:number,col:number):GameState=>{if(state.winner||state.turn!==playerIndex||state.obstacles.includes(key(row,col)))return state;const s=structuredClone(state) as GameState,p=s.players[playerIndex],target=s.board[row]?.[col];if(!p||p.role!=='wolf'||!p.canSabotage||p.sabotageUsed||!target||target.shield)return state;s.board[row][col]=null;p.sabotageUsed=true;s.logs.unshift('Một đoạn đường đã bất ngờ sập xuống.');advance(s);return s};
 
-export const useBlock=(state:GameState,playerIndex:number,targetIndex:number):GameState=>{if(state.winner||state.turn!==playerIndex||playerIndex===targetIndex)return state;const s=structuredClone(state) as GameState,p=s.players[playerIndex],target=s.players[targetIndex];if(!target||p.specialUsed.block)return state;p.specialUsed.block=true;target.blockedTurns=Math.max(1,target.blockedTurns+1);s.logs.unshift(`${p.name} đã dùng lá Chặn lên ${target.name}.`);advance(s);return s};
-export const useRevive=(state:GameState,playerIndex:number,targetIndex:number):GameState=>{if(state.winner||state.turn!==playerIndex||playerIndex===targetIndex)return state;const s=structuredClone(state) as GameState,p=s.players[playerIndex],target=s.players[targetIndex];if(!target||p.specialUsed.revive||target.blockedTurns<=0)return state;p.specialUsed.revive=true;target.blockedTurns=0;s.logs.unshift(`${p.name} đã hồi sinh lượt chơi cho ${target.name}.`);advance(s);return s};
-export const useSwap=(state:GameState,playerIndex:number,myCardIndex:number,targetIndex:number,targetCardIndex:number):GameState=>{if(state.winner||state.turn!==playerIndex||playerIndex===targetIndex)return state;const s=structuredClone(state) as GameState,p=s.players[playerIndex],target=s.players[targetIndex];if(p.specialUsed.swap||!p.hand[myCardIndex]||!target?.hand[targetCardIndex])return state;[p.hand[myCardIndex],target.hand[targetCardIndex]]=[target.hand[targetCardIndex],p.hand[myCardIndex]];p.specialUsed.swap=true;s.logs.unshift(`${p.name} đã bí mật đổi một lá bài với ${target.name}.`);advance(s);return s};
+export const useBlock=(state:GameState,playerIndex:number,targetIndex:number,cardIndex?:number):GameState=>{if(state.winner||state.turn!==playerIndex||playerIndex===targetIndex)return state;const resolved=cardIndex??state.players[playerIndex]?.hand.findIndex(c=>c.kind==='block');const original=state.players[playerIndex]?.hand[resolved];if(original?.kind!=='block')return state;const s=structuredClone(state) as GameState,p=s.players[playerIndex],target=s.players[targetIndex];if(!target)return state;const card=p.hand.splice(resolved,1)[0];s.discardPile.push(card);refill(s,p);target.blockedTurns=Math.max(1,target.blockedTurns+1);s.logs.unshift(`${p.name} đã dùng lá Chặn lên ${target.name}.`);advance(s);return s};
+export const useRevive=(state:GameState,playerIndex:number,targetIndex:number,cardIndex?:number):GameState=>{if(state.winner||state.turn!==playerIndex||playerIndex===targetIndex)return state;const resolved=cardIndex??state.players[playerIndex]?.hand.findIndex(c=>c.kind==='revive');const original=state.players[playerIndex]?.hand[resolved];if(original?.kind!=='revive')return state;const s=structuredClone(state) as GameState,p=s.players[playerIndex],target=s.players[targetIndex];if(!target||target.blockedTurns<=0)return state;const card=p.hand.splice(resolved,1)[0];s.discardPile.push(card);refill(s,p);target.blockedTurns=0;s.logs.unshift(`${p.name} đã hồi sinh lượt chơi cho ${target.name}.`);advance(s);return s};
+export const useSwap=(state:GameState,playerIndex:number,myCardIndex:number,targetIndex:number,targetCardIndex:number,actionCardIndex?:number):GameState=>{const resolved=actionCardIndex??state.players[playerIndex]?.hand.findIndex(c=>c.kind==='swap');if(state.winner||state.turn!==playerIndex||playerIndex===targetIndex||myCardIndex===resolved)return state;const player=state.players[playerIndex],target0=state.players[targetIndex];if(player?.hand[resolved]?.kind!=='swap'||!player.hand[myCardIndex]||!target0?.hand[targetCardIndex])return state;const s=structuredClone(state) as GameState,p=s.players[playerIndex],target=s.players[targetIndex],actionCard=p.hand[resolved];[p.hand[myCardIndex],target.hand[targetCardIndex]]=[target.hand[targetCardIndex],p.hand[myCardIndex]];p.hand.splice(resolved,1);s.discardPile.push(actionCard);refill(s,p);s.logs.unshift(`${p.name} đã bí mật đổi một lá bài với ${target.name}.`);advance(s);return s};
 
 export const botMove=(state:GameState):GameState=>{const idx=state.turn,p=state.players[idx];if(!p?.isBot||state.winner)return state;if(p.hand.length===0){const s=structuredClone(state) as GameState;s.logs.unshift(`${p.name} không còn bài và bỏ lượt.`);advance(s);return s;}const others=state.players.map((x,i)=>({x,i})).filter(v=>v.i!==idx);if(!p.specialUsed.revive){const blocked=others.find(v=>v.x.blockedTurns>0&&v.x.role===p.role);if(blocked&&Math.random()<.7)return useRevive(state,idx,blocked.i)}if(!p.specialUsed.block&&others.length&&Math.random()<.18){const targets=others.filter(v=>p.role==='wolf'?v.x.role==='miner':v.x.score>=Math.max(...others.map(o=>o.x.score)));const t=(targets.length?targets:others)[Math.floor(Math.random()*(targets.length||others.length))];return useBlock(state,idx,t.i)}if(!p.specialUsed.swap&&p.hand.length&&others.some(v=>v.x.hand.length)&&Math.random()<.12){const t=others.filter(v=>v.x.hand.length)[Math.floor(Math.random()*others.filter(v=>v.x.hand.length).length)];return useSwap(state,idx,Math.floor(Math.random()*p.hand.length),t.i,Math.floor(Math.random()*t.x.hand.length))}const targets:Array<[number,number]>=[];for(let r=0;r<state.map.rows;r++)for(let c=0;c<state.map.cols;c++)if(state.board[r][c]&&!state.board[r][c]?.shield)targets.push([r,c]);if(p.role==='wolf'&&p.canSabotage&&!p.sabotageUsed&&targets.length&&Math.random()<.45){const[r,c]=[...targets].sort((a,b)=>b[1]-a[1])[0];return useSabotage(state,idx,r,c)}const candidates:Array<[number,number,number]>=[];p.hand.forEach((card,i)=>{if(card.type==='path')for(let r=0;r<state.map.rows;r++)for(let c=0;c<state.map.cols;c++)if(isValidPlacement(state.board,card,r,c,state.map,state.obstacles))candidates.push([i,r,c])});if(p.role==='wolf'){const deleteIndex=p.hand.findIndex(c=>c.kind==='delete');if(deleteIndex>=0&&targets.length&&Math.random()<.45){const[r,c]=targets[Math.floor(Math.random()*targets.length)];return useAction(state,idx,deleteIndex,r,c)}}const scoutIndex=p.hand.findIndex(c=>c.kind==='scout');if(scoutIndex>=0){const hidden=state.treasures.find(t=>!t.revealed&&!t.peekedBy.includes(p.id));if(hidden&&Math.random()<.3)return scoutTreasure(state,idx,scoutIndex,hidden.id)}if(candidates.length){const score=([,r,c]:[number,number,number])=>p.role==='miner'?c+Math.random()*2:-c+Math.random()*5;const pick=[...candidates].sort((a,b)=>score(b)-score(a))[0];return placeCard(state,idx,pick[0],pick[1],pick[2])}return discardCard(state,idx,Math.max(0,Math.floor(Math.random()*p.hand.length)))};
