@@ -1,4 +1,4 @@
-type Kind='horizontal'|'vertical'|'cornerNE'|'cornerNW'|'cornerSE'|'cornerSW'|'teeUp'|'teeDown'|'teeLeft'|'teeRight'|'cross'|'collapse';
+type Kind='horizontal'|'vertical'|'cornerNE'|'cornerNW'|'cornerSE'|'cornerSW'|'teeUp'|'teeDown'|'teeLeft'|'teeRight'|'cross'|'crossDead'|'cornerNWDead'|'cornerSEDead'|'cornerSWDead'|'collapse';
 const paths:Record<Kind,string[]>={
  horizontal:['M0 12h24'],
  vertical:['M12 0v24'],
@@ -11,6 +11,10 @@ const paths:Record<Kind,string[]>={
  teeLeft:['M0 12h12M12 0v24'],
  teeRight:['M24 12H12M12 0v24'],
  cross:['M12 0v24M0 12h24'],
+ crossDead:['M12 0v7M12 17v7M0 12h7M17 12h7'],
+ cornerNWDead:['M12 24V12h6'],
+ cornerSEDead:['M12 0v12H6'],
+ cornerSWDead:['M12 0v12h6'],
  collapse:['M0 12h12','M13 7l3 4 3-5 4 8']
 };
 export default function PathTileIcon({kind}:{kind:Kind}){return <span className={`path-tile-icon ${kind}`}><svg viewBox="0 0 24 24" aria-hidden="true">{paths[kind].map((d,i)=><path key={i} d={d}/>)}</svg><i/><b/></span>}

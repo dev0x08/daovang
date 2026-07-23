@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Ban, Bot, Box, Clock3, Coins, DoorOpen, Expand, Gem, Hammer, HeartPulse, HelpCircle, MessageCircle, Minimize, Mountain, Pickaxe, RefreshCcw, RotateCcw, Search, Shield, ShieldPlus, Sparkles, Trash2, Trophy, UserRound, Settings, X } from 'lucide-react';
+import { Ban, Bot, Box, Clock3, Coins, DoorOpen, Expand, Gem, Hammer, HeartPulse, HelpCircle, MessageCircle, Minimize, Mountain, Pickaxe, RefreshCcw, RotateCcw, Search, Shield, Sparkles, Trash2, Trophy, UserRound, Settings, X } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { Card, discardCard, GameState, GOLD_MINE_MAP, isValidPlacement, newGame, placeCard, scoutTreasure, useAction, dirs, PathKind, SpecialKind, useBlock, useRevive, useSwap, useSabotage, placementReason } from '../lib/game';
+import { Card, discardCard, GameState, GOLD_MINE_MAP, isValidPlacement, newGame, placeCard, scoutTreasure, useAction, dirs, isDeadPath, PathKind, SpecialKind, useBlock, useRevive, useSwap, useSabotage, placementReason } from '../lib/game';
 import { botMoveWithDeckActions as botMove } from '../lib/gameBot';
 import { useAuth } from '../context/AuthContext';
 import { MatchReward, rollMatchReward, levelFromExp, expForLevel } from '../lib/progression';
@@ -12,19 +12,22 @@ import ChatPanel from '../components/ChatPanel';
 
 function TunnelSvg({card,small=false}:{card:Card;small?:boolean}){
  if(card.type==='action'){
-  const Icon=card.kind==='delete'?Hammer:card.kind==='shield'?ShieldPlus:card.kind==='rotate'?RotateCcw:card.kind==='block'?Ban:card.kind==='revive'?HeartPulse:card.kind==='swap'?RefreshCcw:Search;
+  const Icon=card.kind==='delete'?Hammer:card.kind==='rotate'?RotateCcw:card.kind==='block'?Ban:card.kind==='revive'?HeartPulse:card.kind==='swap'?RefreshCcw:Search;
   return <span className="action-art"><Icon aria-hidden="true"/></span>;
  }
- const open=dirs(card.kind as PathKind,card.rotation);const w=small?54:78;
+ const kind=card.kind as PathKind;const open=dirs(kind,card.rotation);const dead=isDeadPath(kind);const cornerDead=kind==='nwDead'||kind==='seDead'||kind==='swDead';const deadArm=kind==='nwDead'?'R':kind==='seDead'?'L':kind==='swDead'?'R':null;const w=small?54:78;
  return <svg className="tunnel-svg" width={w} height={w} viewBox="0 0 100 100" aria-label={card.label}>
   <defs><radialGradient id={`rock-${card.id}`}><stop offset="0" stopColor="#5a4528"/><stop offset="1" stopColor="#21180f"/></radialGradient></defs>
   <rect x="3" y="3" width="94" height="94" rx="12" fill={`url(#rock-${card.id})`} stroke="#82652c" strokeWidth="3"/>
-  {open.includes('U')&&<Tunnel x1={50} y1={0} x2={50} y2={52}/>} {open.includes('R')&&<Tunnel x1={48} y1={50} x2={100} y2={50}/>} {open.includes('D')&&<Tunnel x1={50} y1={48} x2={50} y2={100}/>} {open.includes('L')&&<Tunnel x1={0} y1={50} x2={52} y2={50}/>} 
-  <circle cx="50" cy="50" r="14" fill="#17120c" stroke="#c49335" strokeWidth="3"/>
+  {open.includes('U')&&<Tunnel x1={50} y1={0} x2={50} y2={cornerDead?52:dead?34:52} dead={dead&&!cornerDead}/>} {open.includes('R')&&<Tunnel x1={dead?66:48} y1={50} x2={100} y2={50} dead={dead}/>} {open.includes('D')&&<Tunnel x1={50} y1={cornerDead?48:dead?66:48} x2={50} y2={100} dead={dead&&!cornerDead}/>} {open.includes('L')&&<Tunnel x1={0} y1={50} x2={dead?34:52} y2={50} dead={dead}/>}
+  {deadArm==='R'&&<Tunnel x1={48} y1={50} x2={72} y2={50} dead/>}
+  {deadArm==='L'&&<Tunnel x1={52} y1={50} x2={28} y2={50} dead/>}
+  {!dead&&<circle cx="50" cy="50" r="14" fill="#17120c" stroke="#c49335" strokeWidth="3"/>}
+  {dead&&card.kind!=='collapse'&&<circle cx="50" cy="50" r="9" fill="#30251a" stroke="#82652c" strokeWidth="2" strokeDasharray="3 3"/>}
   {card.kind==='collapse'&&<g><circle cx="56" cy="50" r="10" fill="#756b5d"/><circle cx="43" cy="55" r="8" fill="#514b42"/><path d="M35 42l8 7 7-11 8 10 8-7" fill="none" stroke="#bd9b56" strokeWidth="4"/></g>}
  </svg>
 }
-function Tunnel({x1,y1,x2,y2}:{x1:number;y1:number;x2:number;y2:number}){return <g><line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#100d09" strokeWidth="25"/><line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#d09a35" strokeWidth="3" strokeDasharray="8 7"/></g>}
+function Tunnel({x1,y1,x2,y2,dead=false}:{x1:number;y1:number;x2:number;y2:number;dead?:boolean}){return <g><line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#100d09" strokeWidth="25"/><line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#d09a35" strokeWidth="3" strokeDasharray="8 7"/>{dead&&<circle cx={x2===0||x2===100?x1:x2} cy={y2===0||y2===100?y1:y2} r="5" fill="#17120c" stroke="#b48633" strokeWidth="2"/>}</g>}
 
 export default function Game(){
  const{profile,completeMatch}=useAuth();const navigate=useNavigate();const[searchParams]=useSearchParams();const gameRef=useRef<HTMLElement>(null);const logRef=useRef<HTMLDivElement>(null);
@@ -68,7 +71,7 @@ export default function Game(){
     <main className="board-wrap">
       <div className="mine-board-shell dynamic">
         <div className="mine-entrance" aria-label="Cửa hầm"><span><Pickaxe aria-hidden="true"/></span><b>CỬA HẦM</b><i/></div>
-        <div className="board dynamic-board" style={{gridTemplateColumns:`repeat(${state.map.cols},1fr)`,gridTemplateRows:`repeat(${state.map.rows},1fr)`}}>{state.board.map((row,r)=>row.map((cell,c)=>{const legal=playable&&human.blockedTurns<=0&&selectedCard?.type==='path'&&!cell&&isValidPlacement(state.board,selectedCard,r,c,state.map,state.obstacles);const obstacle=state.obstacles.includes(`${r},${c}`);return <button disabled={obstacle} onClick={()=>clickCell(r,c)} key={`${r}-${c}`} className={`cell ${cell?'occupied':''} ${legal?'legal':''} ${obstacle?'obstacle':''}`}><span className="grid-coord">{String.fromCharCode(65+c)}{r+1}</span>{obstacle?<div className="obstacle-art cliff"><Mountain aria-hidden="true"/><b>VÁCH ĐÁ</b></div>:cell&&<TunnelSvg card={cell.card} small/>}{cell?.shield&&<Shield className="shield-mark"/>}</button>}))}</div>
+        <div className="board dynamic-board" style={{gridTemplateColumns:`repeat(${state.map.cols},1fr)`,gridTemplateRows:`repeat(${state.map.rows},1fr)`}}>{state.board.map((row,r)=>row.map((cell,c)=>{const legal=playable&&human.blockedTurns<=0&&selectedCard?.type==='path'&&!cell&&isValidPlacement(state.board,selectedCard,r,c,state.map,state.obstacles);const obstacle=state.obstacles.includes(`${r},${c}`);return <button disabled={obstacle} onClick={()=>clickCell(r,c)} key={`${r}-${c}`} className={`cell ${cell?'occupied':''} ${legal?'legal':''} ${obstacle?'obstacle':''}`}><span className="grid-coord">{String.fromCharCode(65+c)}{r+1}</span>{obstacle?<div className="obstacle-art cliff"><Mountain aria-hidden="true"/><b>VÁCH ĐÁ</b></div>:cell&&<TunnelSvg card={cell.card} small/>}</button>}))}</div>
         <div className="treasure-column compact" style={{gridTemplateRows:`repeat(${state.map.rows},1fr)`}}>{state.map.objectives.map(o=>{const t=state.treasures.find(x=>x.id===o.id)!;const peek=t.peekedBy.includes(human.id);return <button onClick={()=>clickTreasure(o.id)} key={o.id} className={`treasure-slot ${t.revealed?'revealed':''} ${t.revealed&&t.isGold?'gold':''} ${peek?'peeked':''} ${peek?(t.isGold?'peeked-gold':'peeked-fake'):''}`} style={{gridRow:(o.row??0)+1}} title={t.revealed?(t.isGold?'Kho báu thật':'Rương giả'):peek?(t.isGold?'Bạn đã thăm dò: KHO BÁU THẬT':'Bạn đã thăm dò: RƯƠNG GIẢ'):'Rương bí ẩn'}><span>{peek||t.revealed?(t.isGold?<Gem aria-hidden="true"/>:<Mountain aria-hidden="true"/>):<Box aria-hidden="true"/>}</span>{peek&&!t.revealed&&<b>{t.isGold?'THẬT':'GIẢ'}</b>}</button>})}</div>
       </div>
       <div className="board-help">Bàn {state.map.cols}×{state.map.rows} · Không thể đặt hoặc phá đường trên ô đá.</div>
