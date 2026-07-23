@@ -2602,6 +2602,122 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
   }
 }
 
+/* v47: phone gameplay is landscape-only and must remain vertically scrollable. */
+@media (max-width:1000px) and (hover:none) and (pointer:coarse){
+  .fullscreen-prompt,
+  .game-actions .ping-badge,
+  .game-actions .action-fullscreen{
+    display:none!important;
+  }
+
+  .game-page,
+  .game-page:fullscreen{
+    height:auto!important;
+    min-height:100dvh!important;
+    max-height:none!important;
+    overflow-x:hidden!important;
+    overflow-y:visible!important;
+  }
+
+  .board-wrap{
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+    touch-action:pan-x pan-y!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel>header{
+    min-width:48px!important;
+  }
+}
+
+@media (max-width:1000px) and (hover:none) and (pointer:coarse) and (orientation:portrait){
+  .orientation-hint{
+    position:fixed!important;
+    inset:0!important;
+    z-index:2147483647!important;
+    display:grid!important;
+    place-items:center!important;
+    padding:20px!important;
+    background:rgba(3,5,4,.96)!important;
+    backdrop-filter:blur(12px)!important;
+  }
+
+  .orientation-hint-card{
+    width:min(390px,94vw)!important;
+    padding:28px 22px!important;
+  }
+
+  .orientation-hint-card p{
+    margin-bottom:0!important;
+  }
+}
+
+@media (max-width:1000px) and (hover:none) and (pointer:coarse) and (orientation:landscape){
+  .orientation-hint{
+    display:none!important;
+  }
+
+  .game-top{
+    min-height:48px!important;
+    grid-template-columns:minmax(140px,1fr) auto auto!important;
+  }
+
+  .game-actions{
+    grid-column:auto!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel{
+    height:112px!important;
+    min-height:112px!important;
+    max-height:112px!important;
+    grid-template-columns:48px minmax(0,1fr) 54px auto!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel>header{
+    width:48px!important;
+    height:102px!important;
+    padding:2px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel>header b{
+    font-size:9px!important;
+    letter-spacing:.4px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel>header small{
+    display:none!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-cards{
+    height:102px!important;
+    grid-template-rows:102px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-card{
+    height:102px!important;
+    min-height:102px!important;
+    grid-template-rows:72px auto!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-card>span,
+  footer.redesigned-bottom-hud .hand-hud-card .tunnel-svg{
+    width:68px!important;
+    height:68px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-discard{
+    width:54px!important;
+    height:102px!important;
+    min-height:102px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel>.bottom-special-hand{
+    height:102px!important;
+    min-height:102px!important;
+    max-height:102px!important;
+  }
+}
+
 /* Profile inventory and mission-backed achievements. */
 .profile-message{
   width:100%;min-height:42px;margin:0 0 14px;padding:0 14px;border:1px solid #476456;
