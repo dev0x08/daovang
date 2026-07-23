@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { cosmeticClass } from '../lib/shop';
 
 export default function Layout() {
   const [open, setOpen] = useState(false);
@@ -76,7 +77,7 @@ export default function Layout() {
                       {profile.photoURL ? <img src={profile.photoURL} alt="" /> : <UserRound size={18} />}
                     </span>
                     <span className="user-menu-copy">
-                      <b>{profile.displayName}</b>
+                      <b className={cosmeticClass(profile.equipped.nameColor)}>{profile.displayName}</b>
                       <small>{profile.rank}</small>
                     </span>
                     <ChevronDown size={16} className="user-chevron" />
@@ -88,7 +89,7 @@ export default function Layout() {
                         <span className="avatar large-menu-avatar">
                           {profile.photoURL ? <img src={profile.photoURL} alt="" /> : <UserRound size={21} />}
                         </span>
-                        <span><b>{profile.displayName}</b><small>{profile.rank}</small></span>
+                        <span><b className={cosmeticClass(profile.equipped.nameColor)}>{profile.displayName}</b><small>{profile.rank}</small></span>
                       </div>
                       <div className="user-dropdown-links">
                         <Link to="/profile" role="menuitem"><UserRound size={17} /><span><b>Hồ sơ</b><small>Thông tin và thành tích</small></span></Link>

@@ -1,5 +1,19 @@
-import { Bot, DoorOpen, Gamepad2, Globe2, Pickaxe, ShieldAlert, Sparkles, Trophy } from 'lucide-react';
+import { DoorOpen, Gem, Pickaxe, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-const modes=[{icon:<Bot/>,title:'Chơi với AI',desc:'Bắt đầu ngay với đội hình 6–8 người.',to:'/play'},{icon:<DoorOpen/>,title:'Tạo phòng Online',desc:'Tạo phòng riêng hoặc công khai.',to:'/room?create=1'},{icon:<Gamepad2/>,title:'Tham gia phòng',desc:'Nhập mã hoặc chọn phòng đang chờ.',to:'/room'}];
-export default function Home(){const{profile,login}=useAuth();return <><section className="hero"><div className="hero-noise"/><div className="hero-rays"/><div className="hero-content"><div className="eyebrow"><Sparkles size={16}/> BOARD GAME CHIẾN THUẬT ẨN VAI TRÒ</div><h1>BÍ ẨN<br/><span>ĐÀO VÀNG</span></h1><p>Ghép đường xuyên hầm mỏ, tìm kho báu và vạch mặt những con Sói đang âm thầm phá hoại.</p><div className="hero-actions">{profile?<Link className="btn btn-primary" to="/play"><Pickaxe/> CHỌN CHẾ ĐỘ</Link>:<Link className="btn btn-primary" to="/login"><Pickaxe/> ĐĂNG NHẬP & CHƠI</Link>}<Link className="btn btn-ghost" to="/guide">XEM LUẬT CHƠI</Link></div><div className="hero-stats"><div><b>12×5</b><span>Bàn cờ chiến thuật</span></div><div><b>6–8</b><span>Người mỗi phòng</span></div><div><b>2 PHE</b><span>Thợ đào & Sói</span></div></div></div><div className="hero-art"><div className="moon"/><div className="mountain m1"/><div className="mountain m2"/><div className="mine-door"><span>💎</span></div><div className="rail"/></div></section><section className="section modes"><div className="section-heading"><span>CHỌN CHẾ ĐỘ</span><h2>BƯỚC VÀO HẦM MỎ</h2><p>Mỗi trận là một cuộc đấu trí mới. Không ai biết người bên cạnh đang xây đường hay giăng bẫy.</p></div><div className="mode-grid">{modes.map((m,i)=><Link to={m.to} className="mode-card" key={m.title}><span className="mode-number">0{i+1}</span><div className="mode-icon">{m.icon}</div><h3>{m.title}</h3><p>{m.desc}</p><b>CHƠI NGAY <span>→</span></b></Link>)}</div></section><section className="section features"><div className="section-heading left"><span>ĐIỂM NỔI BẬT</span><h2>CHIẾN THUẬT, LỪA DỐI<br/>VÀ NHỮNG CÚ LẬT KÈO</h2></div><div className="feature-grid"><article><Pickaxe/><h3>GHÉP ĐƯỜNG TỚI KHO BÁU</h3><p>Kết nối các mảnh đường liên tục từ cột trái đến cột phải trước khi hết lượt.</p></article><article><ShieldAlert/><h3>VAI TRÒ BÍ MẬT</h3><p>Thợ đào hợp tác mở đường. Sói trà trộn, xoay đường, phá ô và đánh lạc hướng.</p></article><article><Trophy/><h3>XẾP HẠNG MÙA GIẢI</h3><p>Tích lũy EXP, vàng và chiến thắng để mở khóa danh hiệu cùng khung hồ sơ.</p></article></div></section></>}
+
+export default function Home(){
+ const{profile}=useAuth();
+ return <section className="gateway-home">
+  <div className="gateway-noise"/>
+  <div className="gateway-light"/>
+  <div className="gateway-copy">
+   <span className="gateway-eyebrow"><Sparkles/> BOARD GAME CHIẾN THUẬT ẨN VAI TRÒ</span>
+   <h1>BÍ ẨN<br/><em>ĐÀO VÀNG</em></h1>
+   <p>Đào sâu vào lòng núi, nối đường tới kho báu và tìm ra những con Sói đang trà trộn giữa đội thợ mỏ.</p>
+   <Link className="gateway-enter" to={profile?'/room':'/login'}><Pickaxe/><span>LỐI VÀO HẦM</span><DoorOpen/></Link>
+   <div className="gateway-facts"><span><b>12×5</b> BÀN HẦM</span><i/><span><b>6–8</b> NGƯỜI</span><i/><span><b>2</b> PHE</span></div>
+  </div>
+  <div className="gateway-mine" aria-hidden="true"><div className="gateway-moon"/><div className="gateway-ridge ridge-back"/><div className="gateway-ridge ridge-front"/><div className="gateway-door"><span><Gem/></span></div><div className="gateway-tracks"/></div>
+ </section>
+}

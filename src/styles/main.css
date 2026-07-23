@@ -1030,6 +1030,9 @@
 .lobby-player-grid .identity-trailing{gap:7px!important}
 .kick-player-button{height:28px;padding:0 8px;display:inline-flex;align-items:center;gap:4px;border:1px solid #713936;border-radius:5px;background:#281112;color:#ff8178;font:900 8px 'Barlow Condensed';letter-spacing:.7px;cursor:pointer}
 .kick-player-button:hover{border-color:#e15c53;background:#411719;color:#ffaaa4}.kick-player-button svg{width:13px;height:13px}
+.chat-message.cosmetic-plate-ocean{background:linear-gradient(100deg,#0b2436,#0f4365 58%,#09151d)!important;border-color:#317ca4!important}.chat-message.cosmetic-plate-crimson{background:linear-gradient(100deg,#2c0d10,#681d22 58%,#16090a)!important;border-color:#a63b42!important}.chat-message.cosmetic-plate-royal{background:linear-gradient(100deg,#2a2009,#73540e 58%,#171104)!important;border-color:#d2a52b!important}
+.chat-message .chat-avatar{overflow:visible!important}.chat-message .chat-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover}.chat-message .chat-avatar.cosmetic-frame-gold{border:2px solid #f2c14d!important;box-shadow:0 0 10px rgba(242,193,77,.5)}.chat-message .chat-avatar.cosmetic-frame-wolf{border:2px solid #c34a43!important;box-shadow:0 0 10px rgba(198,61,55,.5)}
+.chat-cosmetic-title{display:inline-block;margin-left:6px;color:#a9b6c3;font-size:7px;font-weight:800;letter-spacing:.7px;text-transform:uppercase}
 @media(max-width:1100px){.kick-player-button span{display:none}.kick-player-button{width:28px;padding:0;justify-content:center}}
 
 @media(max-width:420px){
@@ -2377,5 +2380,54 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage span>
 footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
   color:#fff1ef!important;
   text-shadow:0 0 8px rgba(255,70,60,.65)!important;
+}
+
+/* v45: authoritative mobile game layouts. Keep overflow inside the board, never on the page. */
+@media(max-width:1000px){
+  html,body,#root,.site-shell{width:100%;max-width:100%;overflow-x:hidden!important}
+  .orientation-hint{display:none!important}
+  .game-page,.game-page:fullscreen{box-sizing:border-box!important;width:100%!important;max-width:100vw!important;min-height:100dvh!important;height:auto!important;margin:0!important;padding:6px!important;display:flex!important;flex-direction:column!important;gap:6px!important;overflow-x:hidden!important;overflow-y:auto!important}
+  .game-top{position:static!important;order:1!important;width:100%!important;min-height:62px!important;height:auto!important;margin:0!important;padding:6px 8px!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:6px!important}
+  .game-top>div:first-child{display:block!important}.game-top h1{font-size:18px!important;margin:2px 0!important}.game-top>div:first-child>span{font-size:7px!important}
+  .turn-pill{position:static!important;min-width:0!important;padding:7px 10px!important;font-size:11px!important;white-space:nowrap!important}
+  .game-actions{grid-column:1/-1!important;display:flex!important;justify-content:flex-end!important;gap:5px!important}.game-actions .btn{min-width:36px!important;width:36px!important;height:34px!important;padding:0!important}.game-actions .btn span{display:none!important}.ping-badge{height:34px!important}
+  .game-layout-v5{order:2!important;width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;min-height:0!important;margin:0!important;gap:6px!important;overflow:visible!important}
+  .board-wrap{box-sizing:border-box!important;width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:4px!important;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-x:contain!important}
+  .board-wrap>.mine-board-shell.dynamic{position:static!important;inset:auto!important;width:900px!important;min-width:900px!important;max-width:none!important;height:440px!important;min-height:440px!important;aspect-ratio:auto!important;margin:0!important;display:flex!important}
+  .board-wrap>.board-help{position:sticky!important;left:0!important;width:min(900px,100%)!important;min-height:18px!important;margin:0!important;white-space:normal!important}
+  .battle-right-column{width:100%!important;min-width:0!important;max-width:100%!important;height:220px!important;min-height:220px!important;margin:0!important;display:block!important;overflow:hidden!important}
+  .battle-journal{width:100%!important;height:220px!important;min-height:220px!important}.battle-journal>.chat-panel{grid-template-rows:40px minmax(0,1fr) 46px!important}.battle-journal .chat-head{display:flex!important}
+  footer.redesigned-bottom-hud{position:static!important;inset:auto!important;order:3!important;width:100%!important;max-width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:5px!important;display:block!important;overflow:visible!important;background:#08131f!important}
+  footer.redesigned-bottom-hud>.player-hand-row{width:100%!important;height:auto!important;display:flex!important;flex-direction:column!important;gap:6px!important}
+  footer.redesigned-bottom-hud .player-progress-card{width:100%!important;min-width:0!important;height:86px!important;min-height:86px!important;max-height:86px!important}
+  footer.redesigned-bottom-hud .hand-hud-panel{width:100%!important;min-width:0!important;height:auto!important;min-height:0!important;max-height:none!important;padding:5px!important;display:grid!important;grid-template-columns:1fr!important;grid-template-rows:30px auto 42px auto!important;gap:5px!important;overflow:visible!important}
+  footer.redesigned-bottom-hud .hand-hud-panel>header{height:30px!important;display:flex!important;flex-direction:row!important;justify-content:flex-start!important;gap:5px!important;border:0!important}.hand-hud-panel>header small{max-width:none!important}
+  footer.redesigned-bottom-hud .hand-hud-cards{width:100%!important;height:auto!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:repeat(2,126px)!important;gap:5px!important;overflow:visible!important}
+  footer.redesigned-bottom-hud .hand-hud-card{box-sizing:border-box!important;width:100%!important;height:126px!important;min-height:126px!important;padding:4px!important;display:grid!important;grid-template-rows:88px auto!important;border-radius:8px!important;background:linear-gradient(180deg,#172638,#0a141f)!important;color:#e8eef4!important;overflow:hidden!important}
+  footer.redesigned-bottom-hud .hand-hud-card>span,footer.redesigned-bottom-hud .hand-hud-card .tunnel-svg{width:84px!important;height:84px!important;max-width:100%!important}.hand-hud-card>b{font-size:11px!important;color:inherit!important}.hand-hud-card>small{display:none!important}
+  footer.redesigned-bottom-hud .hand-hud-discard{width:100%!important;min-width:0!important;height:42px!important;min-height:42px!important;display:flex!important;flex-direction:row!important}
+  footer.redesigned-bottom-hud .hand-hud-panel>.bottom-special-hand{width:100%!important;min-width:0!important;height:76px!important;min-height:76px!important;max-height:76px!important;border-left:0!important;border-top:1px solid rgba(205,169,78,.35)!important}
+}
+
+@media(max-width:760px) and (orientation:portrait){
+  .game-layout-v5{display:flex!important;flex-direction:column!important}
+  .board-wrap{height:474px!important;min-height:474px!important}
+}
+
+@media(max-width:1000px) and (orientation:landscape){
+  .game-page,.game-page:fullscreen{padding:4px!important;gap:4px!important}
+  .game-top{min-height:54px!important;grid-template-columns:minmax(150px,1fr) auto auto!important}.game-top h1{font-size:14px!important}.game-actions{grid-column:auto!important}
+  .game-layout-v5{display:grid!important;grid-template-columns:minmax(0,1fr) 280px!important;grid-template-rows:350px!important;height:350px!important;gap:4px!important}
+  .board-wrap{height:350px!important;overflow:hidden!important}.board-wrap>.mine-board-shell.dynamic{width:100%!important;min-width:0!important;height:330px!important;min-height:330px!important}.board-wrap>.board-help{width:100%!important}
+  .battle-right-column,.battle-journal{height:350px!important;min-height:350px!important}
+  footer.redesigned-bottom-hud{height:142px!important;min-height:142px!important;padding:4px!important}
+  footer.redesigned-bottom-hud>.player-hand-row{height:134px!important;display:grid!important;grid-template-columns:280px minmax(0,1fr)!important;gap:5px!important}
+  footer.redesigned-bottom-hud .player-progress-card{width:280px!important;height:134px!important;min-height:134px!important;max-height:134px!important}
+  footer.redesigned-bottom-hud .hand-hud-panel{height:134px!important;max-height:134px!important;grid-template-columns:64px minmax(0,1fr) 64px auto!important;grid-template-rows:1fr!important;overflow:hidden!important}
+  footer.redesigned-bottom-hud .hand-hud-panel>header{height:124px!important;flex-direction:column!important;justify-content:center!important}
+  footer.redesigned-bottom-hud .hand-hud-cards{height:124px!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;grid-template-rows:124px!important;gap:3px!important;overflow:hidden!important}
+  footer.redesigned-bottom-hud .hand-hud-card{height:124px!important;min-height:124px!important;grid-template-rows:88px auto!important}.hand-hud-card>b{font-size:9px!important}
+  footer.redesigned-bottom-hud .hand-hud-discard{width:64px!important;height:124px!important;min-height:124px!important;flex-direction:column!important}
+  footer.redesigned-bottom-hud .hand-hud-panel>.bottom-special-hand{width:128px!important;min-width:128px!important;height:124px!important;min-height:124px!important;max-height:124px!important;border-top:0!important;border-left:1px solid rgba(205,169,78,.35)!important}
 }
 

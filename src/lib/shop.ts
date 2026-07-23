@@ -18,3 +18,4 @@ export const SHOP_ITEMS:ShopItem[]=[
  {id:'badge-gem',name:'Huy hiệu Đá Quý',description:'Huy hiệu đá quý hiếm.',category:'badge',price:550,preview:'♦'},
 ];
 export const itemById=(id?:string|null)=>SHOP_ITEMS.find(x=>x.id===id);
+export const cosmeticClass=(id?:string|null)=>id?`cosmetic-${id}`:'';

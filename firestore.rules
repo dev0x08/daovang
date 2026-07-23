@@ -74,10 +74,11 @@ service cloud.firestore {
       match /messages/{messageId} {
         allow read: if signedIn();
         allow create: if signedIn()
-          && request.resource.data.keys().hasOnly(['uid','displayName','photoURL','text','createdAt'])
+          && request.resource.data.keys().hasOnly(['uid','displayName','photoURL','equipped','text','createdAt'])
           && request.resource.data.uid == request.auth.uid
           && request.resource.data.displayName is string && request.resource.data.displayName.size() <= 60
           && request.resource.data.photoURL is string && request.resource.data.photoURL.size() <= 500
+          && request.resource.data.equipped is map
           && request.resource.data.text is string
           && request.resource.data.text.size() > 0
           && request.resource.data.text.size() <= 300

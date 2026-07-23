@@ -103,6 +103,8 @@ export default function Room() {
 
   useEffect(()=>{if(profile&&room)localStorage.setItem(`active-room:${profile.uid}`,room.id)},[profile?.uid,room?.id]);
 
+  useEffect(()=>{if(!profile||!room||!db)return;const member=room.players.find(player=>player.uid===profile.uid);if(!member||JSON.stringify(member.equipped||{})===JSON.stringify(profile.equipped||{}))return;const ref=doc(db,'rooms',room.id);void runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())return;const current={id:snap.id,...snap.data()} as Room;const players=current.players.map(player=>player.uid===profile.uid?{...player,name:profile.displayName,avatar:profile.photoURL,rank:profile.rank,equipped:profile.equipped}:player);tx.update(ref,{players})})},[profile?.uid,profile?.displayName,profile?.photoURL,profile?.rank,profile?.equipped,room?.id,room?.players]);
+
   useEffect(()=>{if(room?.status==='started')window.location.assign(`/game?mode=room&room=${encodeURIComponent(room.id)}&players=${room.players.length}`)},[room?.status,room?.id]);
 
   useEffect(() => {
