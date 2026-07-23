@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import GameEmblem from '../components/GameEmblem';
 import PathTileIcon from '../components/PathTileIcon';
+import { ACTION_CARD_TOTAL, DECK_COUNTS, DECK_TOTAL, PATH_CARD_TOTAL } from '../lib/game';
 
 const pathCards = [
   {kind:'horizontal' as const,name:'Đường ngang',edges:'Mở: trái + phải',text:'Nối đường hầm theo chiều ngang. Cạnh trên và dưới đóng, nên chỉ đặt cạnh các lá kề có hai cạnh tương ứng cũng đóng.'},
@@ -20,16 +21,15 @@ const pathCards = [
   {kind:'collapse' as const,name:'Sập hầm',edges:'Mở: một cạnh theo hướng lá',text:'Là đường cụt chỉ có một lối vào. Có thể xoay bằng lá Xoay đường; thường được Sói dùng để chặn hoặc đánh lạc hướng.'},
 ];
 const actionCards=[
- {icon:Hammer,name:'Phá đường',text:'Loại bỏ một mảnh đường hợp lệ trên bàn. Không phá được chướng ngại hoặc đường đã gia cố.'},
- {icon:ShieldPlus,name:'Gia cố',text:'Bảo vệ một mảnh đường. Mảnh đã gia cố không thể bị phá bằng lá hành động hoặc kỹ năng Sói.'},
- {icon:RotateCcw,name:'Xoay đường',text:'Xoay một mảnh đường trên bàn 90°. Chỉ dùng được nếu sau khi xoay, tất cả cạnh tiếp giáp vẫn khớp; không xoay được lá đã gia cố.'},
- {icon:Search,name:'Thăm dò',text:'Xem bí mật một trong ba rương. Chỉ người sử dụng biết rương đó thật hay giả.'},
- {icon:Ban,name:'Chặn · 4 lá',text:'Chọn một người chơi khiến họ mất lượt kế tiếp. Lá được bỏ sau khi dùng; có thể dùng lại nếu bốc được lá Chặn khác.'},
- {icon:HeartPulse,name:'Hồi sinh · 3 lá',text:'Gỡ trạng thái bị chặn cho một người chơi khác. Chỉ dùng được khi có mục tiêu đang bị chặn.'},
- {icon:RefreshCcw,name:'Đổi bài · 4 lá',text:'Đổi một lá trên tay với một lá úp do bạn chọn từ tay người chơi khác.'},
+ {icon:Hammer,name:'Phá đường',count:DECK_COUNTS.delete,text:'Loại bỏ một mảnh đường chưa được gia cố.'},
+ {icon:ShieldPlus,name:'Gia cố',count:DECK_COUNTS.shield,text:'Bảo vệ một mảnh đường khỏi bị phá.'},
+ {icon:HeartPulse,name:'Hồi sinh',count:DECK_COUNTS.revive,text:'Gỡ trạng thái Chặn vĩnh viễn cho một người chơi khác.'},
+ {icon:Search,name:'Thăm dò rương',count:DECK_COUNTS.scout,text:'Xem bí mật một trong ba rương.'},
+ {icon:Ban,name:'Chặn',count:DECK_COUNTS.block,text:'Khiến một người chơi mất lượt kế tiếp.'},
 ];
+const pathCounts=[DECK_COUNTS.h,DECK_COUNTS.v,DECK_COUNTS.ne,DECK_COUNTS.nw,DECK_COUNTS.se,DECK_COUNTS.sw,DECK_COUNTS.tUp,DECK_COUNTS.tDown,DECK_COUNTS.tLeft,DECK_COUNTS.tRight,DECK_COUNTS.cross,DECK_COUNTS.collapse];
 const specials=[
- {icon:Hammer,name:'Phá sập hầm',text:'Kỹ năng bí mật chỉ một trong hai Sói sở hữu. Dùng một lần mà không lộ danh tính.'},
+ {icon:Hammer,name:'Phá sập hầm',text:'Chọn một mảnh làm tâm và phá cả các mảnh kề trên, dưới, trái, phải — tối đa 5 mảnh. Gia cố vẫn chống được hiệu ứng. Kỹ năng dùng một lần và không lộ danh tính Sói.'},
 ];
 export default function Guide(){return <section className="guide-page guide-full ui-v2-page">
  <div className="section-heading"><span>HƯỚNG DẪN ĐẦY ĐỦ</span><h1>CÁCH CHƠI BÍ ẨN ĐÀO VÀNG</h1><p>Toàn bộ luật trận đấu, vai trò, các loại lá bài, kỹ năng đặc biệt và điều kiện chiến thắng.</p></div>
@@ -40,9 +40,9 @@ export default function Guide(){return <section className="guide-page guide-full
   <article><GameEmblem icon={Layers3} tone="violet"/><b>6 LÁ TRÊN TAY</b><p>Sau khi dùng hoặc bỏ một lá, người chơi rút bù nếu bộ bài còn.</p></article>
  </div>
  <section className="guide-section"><header><GameEmblem icon={Pickaxe} size="sm"/><div><span>01</span><h2>MỤC TIÊU VÀ VAI TRÒ</h2></div></header><div className="guide-two-col"><article className="role-guide miner"><GameEmblem icon={Compass} tone="emerald"/><h3>THỢ ĐÀO</h3><p>Xây một đường hầm liên tục từ cửa hầm bên trái tới đúng rương vàng. Có thể phối hợp, sửa đường, gia cố và thăm dò rương.</p></article><article className="role-guide wolf"><GameEmblem icon={Swords} tone="red"/><h3>SÓI</h3><p>Trà trộn vào đội thợ đào, tạo đường sai, dùng đường cụt, phá tuyến và kéo dài trận.</p></article></div><div className="guide-note"><Gem/><p>Danh tính, số Sói và người giữ kỹ năng phá sập hầm đều không được công bố trong nhật ký trận đấu.</p></div></section>
- <section className="guide-section"><header><GameEmblem icon={Route} size="sm"/><div><span>02</span><h2>LÁ MẢNH ĐƯỜNG</h2></div></header><p className="guide-intro">Mỗi biểu tượng dưới đây mô phỏng chính xác các cạnh mở của lá. Khi đặt bài, mọi cạnh chạm lá bên cạnh phải cùng mở hoặc cùng đóng.</p><div className="guide-card-grid path-guide-grid">{pathCards.map(x=><article key={x.name}><PathTileIcon kind={x.kind}/><h3>{x.name}</h3><strong className="guide-card-edges">{x.edges}</strong><p>{x.text}</p></article>)}</div></section>
- <section className="guide-section"><header><GameEmblem icon={Hammer} size="sm"/><div><span>03</span><h2>LÁ CHỨC NĂNG</h2></div></header><div className="deck-total"><Layers3/><div><b>144 LÁ TRONG DECK</b><span>102 mảnh đường · 42 lá chức năng</span></div></div><p className="guide-intro">Mỗi người bắt đầu với 6 lá. Lá đã dùng hoặc bỏ vào chồng bài bỏ, sau đó rút bù nếu deck còn bài.</p><div className="guide-card-grid">{actionCards.map(({icon,name,text})=><article key={name}><GameEmblem icon={icon}/><h3>{name}</h3><p>{text}</p></article>)}</div></section>
- <section className="guide-section"><header><GameEmblem icon={ShieldAlert} tone="red" size="sm"/><div><span>04</span><h2>KỸ NĂNG ĐẶC BIỆT</h2></div></header><p className="guide-intro">Chặn, Hồi sinh và Đổi bài đã nằm trong deck. Chỉ kỹ năng bí mật của Sói không cần bốc bài.</p><div className="guide-card-grid special-guide-grid">{specials.map(({icon,name,text})=><article key={name}><GameEmblem icon={icon} tone="red"/><h3>{name}</h3><p>{text}</p></article>)}</div></section>
+ <section className="guide-section"><header><GameEmblem icon={Route} size="sm"/><div><span>02</span><h2>LÁ MẢNH ĐƯỜNG · {PATH_CARD_TOTAL} LÁ</h2></div></header><p className="guide-intro">Bộ bài đã được thu gọn. Số lượng hiển thị là số lá thật đang được dùng trong trận.</p><div className="guide-card-grid path-guide-grid">{pathCards.map((x,index)=><article key={x.name}><span className="guide-card-count">×{pathCounts[index]}</span><PathTileIcon kind={x.kind}/><h3>{x.name}</h3><strong className="guide-card-edges">{x.edges}</strong><p>{x.text}</p></article>)}</div></section>
+ <section className="guide-section"><header><GameEmblem icon={Hammer} size="sm"/><div><span>03</span><h2>LÁ CHỨC NĂNG · {ACTION_CARD_TOTAL} LÁ</h2></div></header><div className="deck-total"><Layers3/><div><b>{DECK_TOTAL} LÁ TRONG DECK</b><span>{PATH_CARD_TOTAL} mảnh đường · {ACTION_CARD_TOTAL} lá chức năng</span></div></div><p className="guide-intro">Chặn khóa khả năng đặt mảnh đường cho tới khi người chơi khác dùng Hồi sinh. Người bị chặn vẫn được dùng chức năng hoặc bỏ bài.</p><div className="guide-card-grid">{actionCards.map(({icon,name,count,text})=><article key={name}><span className="guide-card-count">×{count}</span><GameEmblem icon={icon}/><h3>{name}</h3><p>{text}</p></article>)}</div></section>
+ <section className="guide-section"><header><GameEmblem icon={ShieldAlert} tone="red" size="sm"/><div><span>04</span><h2>KỸ NĂNG ĐẶC BIỆT</h2></div></header><p className="guide-intro">Chặn nằm trong deck. Kỹ năng bí mật Phá sập hầm của Sói không cần bốc bài và chỉ dùng một lần.</p><div className="guide-card-grid special-guide-grid">{specials.map(({icon,name,text})=><article key={name}><GameEmblem icon={icon} tone="red"/><h3>{name}</h3><p>{text}</p></article>)}</div></section>
  <section className="guide-section"><header><GameEmblem icon={RefreshCcw} size="sm"/><div><span>05</span><h2>TRÌNH TỰ MỘT LƯỢT</h2></div></header><ol className="turn-steps"><li><b>Chọn hành động</b><span>Đặt mảnh đường, dùng lá chức năng, dùng kỹ năng hoặc bỏ một lá.</span></li><li><b>Chọn mục tiêu</b><span>Chọn ô, rương hoặc người chơi phù hợp.</span></li><li><b>Kết thúc lượt</b><span>Hệ thống chuyển lượt và rút bù tối đa 6 lá.</span></li><li><b>AI hành động</b><span>AI đánh giá vai trò, tuyến đường và kỹ năng còn lại trước khi đi.</span></li></ol></section>
  <section className="guide-section"><header><GameEmblem icon={Trophy} size="sm"/><div><span>06</span><h2>KẾT THÚC TRẬN VÀ EXP</h2></div></header><div className="guide-two-col"><article><h3>THỢ ĐÀO THẮNG</h3><p>Một tuyến đường hợp lệ nối từ cửa hầm tới rương vàng thật.</p></article><article><h3>SÓI THẮNG</h3><p>Thợ đào không thể tìm được vàng trước khi tài nguyên cần thiết đã cạn.</p></article></div><div className="reward-row"><span><b>THẮNG</b> 48–96 EXP · 65–135 vàng</span><span><b>THUA</b> 20–52 EXP · 24–68 vàng</span></div></section>
  </section>}

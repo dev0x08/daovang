@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import {
   addDoc,
   collection,
-  deleteDoc,
   doc,
+  getDoc,
   getDocs,
   limit,
   onSnapshot,
@@ -26,8 +26,10 @@ import {
   Plus,
   Radio,
   Search,
+  Settings,
   ShieldCheck,
   UserRound,
+  UserX,
   Users,
   X,
 } from 'lucide-react';
@@ -45,6 +47,7 @@ type Player = {
   ready: boolean;
   rank?: string;
   equipped?: Equipped;
+  slot?: number;
 };
 
 type Room = {
@@ -58,6 +61,7 @@ type Room = {
   passwordHash?: string;
   maxPlayers: number;
   players: Player[];
+  mode?: 'online' | 'ai';
 };
 
 const ROOM_CODE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -74,10 +78,6 @@ async function hashPassword(value: string): Promise<string> {
 export default function Room() {
   const { profile } = useAuth();
   const [params] = useSearchParams();
-  const roomRef = useRef<Room | null>(null);
-  const profileRef = useRef(profile);
-  const startingRef = useRef(false);
-  const cleanupTimer = useRef<number | null>(null);
 
   const [room, setRoom] = useState<Room | null>(null);
   const [waitingRooms, setWaitingRooms] = useState<Room[]>([]);
@@ -86,34 +86,23 @@ export default function Room() {
   const [showCode, setShowCode] = useState(false);
   const [showCreate, setShowCreate] = useState(params.get('create') === '1');
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+  const [roomMode, setRoomMode] = useState<'online' | 'ai'>('online');
   const [roomName, setRoomName] = useState('');
   const [createPassword, setCreatePassword] = useState('');
   const [joinPassword, setJoinPassword] = useState('');
   const [pendingRoom, setPendingRoom] = useState<Room | null>(null);
   const [creating, setCreating] = useState(false);
-
-  useEffect(() => {
-    roomRef.current = room;
-    profileRef.current = profile;
-  }, [room, profile]);
+  const [showMatchSettings, setShowMatchSettings] = useState(false);
 
   useEffect(() => {
     if (profile && !roomName) setRoomName(`Phòng của ${profile.displayName}`);
   }, [profile, roomName]);
 
-  useEffect(() => {
-    if (cleanupTimer.current) window.clearTimeout(cleanupTimer.current);
-    return () => {
-      const current = roomRef.current;
-      const user = profileRef.current;
-      const database = db;
-      if (current && user?.uid === current.hostId && current.status === 'waiting' && !startingRef.current && database) {
-        cleanupTimer.current = window.setTimeout(() => {
-          void deleteDoc(doc(database, 'rooms', current.id));
-        }, 200);
-      }
-    };
-  }, []);
+  useEffect(()=>{if(!profile||!db||room)return;const roomId=localStorage.getItem(`active-room:${profile.uid}`);if(!roomId)return;let cancelled=false;(async()=>{try{const snap=await getDoc(doc(db!,'rooms',roomId));if(!snap.exists()){localStorage.removeItem(`active-room:${profile.uid}`);return}const restored={id:snap.id,...snap.data()} as Room;if(restored.players.some(player=>player.uid===profile.uid)&&!cancelled)setRoom(restored);else localStorage.removeItem(`active-room:${profile.uid}`)}catch{}})();return()=>{cancelled=true}},[profile?.uid,room]);
+
+  useEffect(()=>{if(profile&&room)localStorage.setItem(`active-room:${profile.uid}`,room.id)},[profile?.uid,room?.id]);
+
+  useEffect(()=>{if(room?.status==='started')window.location.assign(`/game?mode=room&room=${encodeURIComponent(room.id)}&players=${room.players.length}`)},[room?.status,room?.id]);
 
   useEffect(() => {
     if (!db) return;
@@ -132,7 +121,7 @@ export default function Room() {
     if (!db || !room) return;
     const unsubscribe = onSnapshot(doc(db, 'rooms', room.id), (snapshot) => {
       if (snapshot.exists()) setRoom({ id: snapshot.id, ...snapshot.data() } as Room);
-      else setRoom(null);
+      else {setRoom(null);if(profile)localStorage.removeItem(`active-room:${profile.uid}`)}
     });
     return () => { unsubscribe(); };
   }, [room?.id]);
@@ -143,42 +132,58 @@ export default function Room() {
       setError('Firebase chưa được cấu hình.');
       return;
     }
+    const activeRoomId=localStorage.getItem(`active-room:${profile.uid}`);
+    if(activeRoomId){
+      try{
+        const activeSnap=await getDoc(doc(db,'rooms',activeRoomId));
+        if(activeSnap.exists()){
+          const activeRoom={id:activeSnap.id,...activeSnap.data()} as Room;
+          if(activeRoom.players.some(player=>player.uid===profile.uid)){
+            setRoom(activeRoom);
+            setShowCreate(false);
+            setError(activeRoom.status==='started'?'Bạn đang ở trong một trận đấu.':'Bạn đang ở trong một phòng chờ. Hãy rời phòng hiện tại trước khi tạo phòng mới.');
+            return;
+          }
+        }
+        localStorage.removeItem(`active-room:${profile.uid}`);
+      }catch{
+        setError('Không thể xác minh phòng hiện tại. Vui lòng thử lại.');
+        return;
+      }
+    }
     const safeRoomName=roomName.trim().replace(/\s+/g,' ').slice(0,40);
     if (safeRoomName.length < 3) {
       setError('Vui lòng nhập tên phòng.');
       return;
     }
-    if (visibility === 'private' && createPassword.trim().length < 4) {
+    if (roomMode === 'online' && visibility === 'private' && createPassword.trim().length < 4) {
       setError('Mật khẩu phòng riêng tư phải có ít nhất 4 ký tự.');
       return;
     }
 
     setCreating(true);
     try {
-      const passwordHash = visibility === 'private' ? await hashPassword(createPassword.trim()) : '';
+      const effectiveVisibility = roomMode === 'ai' ? 'private' : visibility;
+      const passwordHash = roomMode === 'online' && visibility === 'private' ? await hashPassword(createPassword.trim()) : '';
+      const hostPlayer:Player={uid:profile.uid,name:profile.displayName,avatar:profile.photoURL,ready:true,rank:profile.rank,equipped:profile.equipped,slot:0};
+      const aiPlayers:Player[]=roomMode==='ai'?Array.from({length:5},(_,index)=>({uid:`bot-${crypto.randomUUID()}`,name:`AI Thợ Mỏ ${index+1}`,avatar:'',bot:true,ready:true,slot:index+1})):[];
       const data = {
         code: makeCode(),
         name: safeRoomName,
         hostId: profile.uid,
         hostName: profile.displayName,
         status: 'waiting' as const,
-        visibility,
+        visibility: effectiveVisibility,
+        mode: roomMode,
         passwordHash,
         maxPlayers: 6,
-        players: [
-          {
-            uid: profile.uid,
-            name: profile.displayName,
-            avatar: profile.photoURL,
-            ready: true,
-            rank: profile.rank,
-            equipped: profile.equipped,
-          },
-        ],
+        players: [hostPlayer],
         createdAt: serverTimestamp(),
       };
       const reference = await addDoc(collection(db, 'rooms'), data);
-      setRoom({ id: reference.id, ...data } as Room);
+      const finalPlayers=roomMode==='ai'?[hostPlayer,...aiPlayers]:[hostPlayer];
+      if(roomMode==='ai')await updateDoc(reference,{players:finalPlayers});
+      setRoom({ id: reference.id, ...data, players:finalPlayers } as Room);
       setShowCreate(false);
       setCreatePassword('');
     } catch {
@@ -206,9 +211,13 @@ export default function Room() {
         const current={id:snap.id,...snap.data()} as Room;
         if(current.players.some(p=>p.uid===profile.uid)) return current;
         if(current.status!=='waiting') throw new Error('Phòng đã bắt đầu.');
-        if(current.players.length>=Math.min(6,current.maxPlayers)) throw new Error('Phòng đã đủ người.');
-        const player={uid:profile.uid,name:profile.displayName.slice(0,40),avatar:profile.photoURL,ready:false,rank:profile.rank,equipped:profile.equipped};
-        const players=[...current.players,player];
+        if(current.players.length>=current.maxPlayers) throw new Error('Phòng đã đủ người.');
+        const normalized=current.players.map((player,index)=>{const slot=player.slot??index;return {...player,slot,name:player.bot?`AI Thợ Mỏ ${slot}`:player.name}});
+        const usedSlots=new Set(normalized.map(player=>player.slot));
+        const slot=Array.from({length:current.maxPlayers},(_,index)=>index).find(index=>!usedSlots.has(index));
+        if(slot===undefined)throw new Error('Phòng đã đủ người.');
+        const player={uid:profile.uid,name:profile.displayName.slice(0,40),avatar:profile.photoURL,ready:false,rank:profile.rank,equipped:profile.equipped,slot};
+        const players=[...normalized,player];
         tx.update(ref,{players});
         return {...current,players};
       });
@@ -251,10 +260,30 @@ export default function Room() {
     await runTransaction(db,async tx=>{
       const snap=await tx.get(ref);if(!snap.exists())return;
       const current={id:snap.id,...snap.data()} as Room;
-      if(current.hostId!==profile.uid||current.status!=='waiting'||current.players.length>=Math.min(6,current.maxPlayers))return;
-      const players=[...current.players,{uid:`bot-${crypto.randomUUID()}`,name:`AI Thợ Mỏ ${current.players.filter(p=>p.bot).length+1}`,avatar:'',bot:true,ready:true}];
+      if(current.hostId!==profile.uid||current.status!=='waiting'||current.players.length>=current.maxPlayers)return;
+      const normalized=current.players.map((player,index)=>{const slot=player.slot??index;return {...player,slot,name:player.bot?`AI Thợ Mỏ ${slot}`:player.name}});
+      const usedSlots=new Set(normalized.map(player=>player.slot));
+      const slot=Array.from({length:current.maxPlayers},(_,index)=>index).find(index=>!usedSlots.has(index));
+      if(slot===undefined)return;
+      const players=[...normalized,{uid:`bot-${crypto.randomUUID()}`,name:`AI Thợ Mỏ ${slot}`,avatar:'',bot:true,ready:true,slot}];
       tx.update(ref,{players});
     });
+  };
+
+  const changeMaxPlayers=async(maxPlayers:number)=>{
+    if(!room||!db||profile?.uid!==room.hostId||maxPlayers<6||maxPlayers>8)return;
+    const highestSlot=Math.max(...room.players.map((player,index)=>player.slot??index));
+    if(room.players.length>maxPlayers||highestSlot>=maxPlayers){setError(`Không thể giảm xuống ${maxPlayers} khi vẫn có người ở vị trí cao hơn.`);return}
+    try{await updateDoc(doc(db,'rooms',room.id),{maxPlayers});setError('')}catch{setError('Không thể đổi số người chơi. Hãy cập nhật Firebase Rules.')}
+  };
+
+  const kickPlayer=async(targetUid:string)=>{
+    if(!room||!db||profile?.uid!==room.hostId||targetUid===room.hostId)return;
+    try{
+      const ref=doc(db,'rooms',room.id);
+      await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())return;const current={id:snap.id,...snap.data()} as Room;if(current.hostId!==profile.uid||current.status!=='waiting')return;const players=current.players.map((player,index)=>{const slot=player.slot??index;return {...player,slot,name:player.bot?`AI Thợ Mỏ ${slot}`:player.name}}).filter(player=>player.uid!==targetUid);tx.update(ref,{players})});
+      setError('');
+    }catch{setError('Không thể kích người chơi khỏi phòng.')}
   };
 
   const leaveRoom = async () => {
@@ -267,6 +296,7 @@ export default function Room() {
       tx.update(ref,{players:current.players.filter(p=>p.uid!==profile.uid)});
     });
     setRoom(null);
+    localStorage.removeItem(`active-room:${profile.uid}`);
   };
 
   const startRoom = async () => {
@@ -278,11 +308,10 @@ export default function Room() {
         const current={id:snap.id,...snap.data()} as Room;
         if(current.hostId!==profile.uid)throw new Error('Chỉ chủ phòng được bắt đầu.');
         if(current.status!=='waiting')throw new Error('Phòng đã bắt đầu.');
-        if(current.players.length<6||current.players.length>6)throw new Error('Cần đúng 6 người chơi.');
+        if(current.players.length!==current.maxPlayers)throw new Error(`Cần đúng ${current.maxPlayers} người chơi.`);
         if(new Set(current.players.map(p=>p.uid)).size!==current.players.length)throw new Error('Danh sách người chơi không hợp lệ.');
         tx.update(ref,{status:'started',startedAt:serverTimestamp()});return current.players.length;
       });
-      startingRef.current=true;
       window.location.assign(`/game?mode=room&room=${encodeURIComponent(room.id)}&players=${count}`);
     }catch(e){setError(e instanceof Error?e.message:'Không thể bắt đầu trận.');}
   };
@@ -425,7 +454,20 @@ export default function Room() {
                 <input value={roomName} maxLength={40} onChange={(event) => setRoomName(event.target.value)} />
               </label>
 
-              <div className="room-visibility-picker">
+              <div className="room-visibility-picker room-mode-picker">
+                <button className={roomMode === 'online' ? 'active' : ''} onClick={() => setRoomMode('online')}>
+                  <Users />
+                  <b>PHÒNG ONLINE</b>
+                  <small>Chờ người chơi tham gia và có thể thêm AI sau.</small>
+                </button>
+                <button className={roomMode === 'ai' ? 'active' : ''} onClick={() => {setRoomMode('ai');setCreatePassword('')}}>
+                  <Bot />
+                  <b>CHƠI VỚI AI</b>
+                  <small>Tự động thêm 5 AI và sẵn sàng bắt đầu ngay.</small>
+                </button>
+              </div>
+
+              {roomMode === 'online' && <div className="room-visibility-picker">
                 <button
                   className={visibility === 'public' ? 'active' : ''}
                   onClick={() => {
@@ -445,9 +487,9 @@ export default function Room() {
                   <b>RIÊNG TƯ</b>
                   <small>Hiện trong lobby nhưng bắt buộc nhập mật khẩu.</small>
                 </button>
-              </div>
+              </div>}
 
-              {visibility === 'private' && (
+              {roomMode === 'online' && visibility === 'private' && (
                 <label>
                   Mật khẩu phòng
                   <div className="password-input-wrap">
@@ -527,42 +569,39 @@ export default function Room() {
 
       <div className="lobby-grid">
         <div className="panel lobby-players">
-          <header><Users /> ĐỘI HÌNH ({room.players.length}/{room.maxPlayers})</header>
+          <header><Users /> ĐỘI HÌNH ({room.players.length}/{room.maxPlayers})<button className="lobby-settings-trigger" title="Thiết lập trận" onClick={()=>setShowMatchSettings(true)}><Settings /></button></header>
+          <div className="lobby-player-grid">
           {Array.from({ length: room.maxPlayers }, (_, index) => {
-            const player = room.players[index];
+            const player = room.players.find((candidate,candidateIndex)=>(candidate.slot??candidateIndex)===index);
             return player ? (
               <div className="lobby-player" key={player.uid}>
                 <PlayerIdentity
                   player={player}
                   subtitle={player.uid === room.hostId ? 'CHỦ PHÒNG' : player.bot ? 'AI' : 'NGƯỜI CHƠI'}
-                  trailing={<em>{player.ready ? 'SẴN SÀNG' : 'ĐANG CHỜ'}</em>}
+                  trailing={<><em>{player.ready ? 'SẴN SÀNG' : 'ĐANG CHỜ'}</em>{isHost&&player.uid!==room.hostId&&<button className="kick-player-button" title={`Kích ${player.name}`} onClick={()=>void kickPlayer(player.uid)}><UserX/><span>KÍCH</span></button>}</>}
                 />
               </div>
             ) : <div className="empty-slot" key={index}>VỊ TRÍ TRỐNG</div>;
           })}
+          </div>
           {isHost && (
             <button onClick={() => void addBot()} disabled={room.players.length >= room.maxPlayers} className="btn btn-ghost">
               <Bot /> THÊM AI
             </button>
           )}
-        </div>
-
-        <div className="room-side-stack"><div className="panel room-settings">
-          <header><DoorOpen /> THIẾT LẬP TRẬN</header>
-          <div className="setting-row"><span>Loại phòng</span><b>{room.visibility === 'public' ? 'CÔNG KHAI' : 'RIÊNG TƯ'}</b></div>
-          <div className="setting-row"><span>Bàn chơi</span><b>12×5</b></div>
-          <div className="setting-row"><span>Người chơi</span><b>6–8</b></div>
-          <div className="setting-row"><span>Vai trò</span><b>BÍ MẬT</b></div>
           {isHost ? (
-            <button onClick={() => void startRoom()} disabled={room.players.length < 6} className="btn btn-primary btn-wide">
+            <button onClick={() => void startRoom()} disabled={room.players.length !== room.maxPlayers} className="btn btn-primary lobby-start-button">
               BẮT ĐẦU TRẬN
             </button>
           ) : (
             <div className="waiting-host"><Radio /> Đang chờ chủ phòng bắt đầu...</div>
           )}
-          {room.players.length < 6 && <small>Cần thêm {6 - room.players.length} người hoặc AI.</small>}
-        </div><div className="panel lobby-chat-card"><ChatPanel roomId={room.id}/></div></div>
+          {room.players.length < room.maxPlayers && <small className="lobby-player-note">Cần thêm {room.maxPlayers - room.players.length} người hoặc AI.</small>}
+        </div>
+
+        <div className="room-side-stack"><div className="panel lobby-chat-card"><ChatPanel roomId={room.id}/></div></div>
       </div>
+      {showMatchSettings&&<div className="room-modal-backdrop" onMouseDown={()=>setShowMatchSettings(false)}><div className="room-modal match-settings-modal" onMouseDown={event=>event.stopPropagation()}><button className="room-modal-close" onClick={()=>setShowMatchSettings(false)}><X /></button><div className="room-modal-icon"><Settings /></div><span>PHÒNG CHỜ</span><h2>THIẾT LẬP TRẬN</h2><div className="setting-row"><span>Loại phòng</span><b>{room.mode==='ai'?'CHƠI VỚI AI':room.visibility==='public'?'CÔNG KHAI':'RIÊNG TƯ'}</b></div><div className="setting-row"><span>Bàn chơi</span><b>12×5</b></div><div className="setting-row match-player-limit"><span>Người chơi</span>{isHost?<select value={room.maxPlayers} onChange={event=>void changeMaxPlayers(Number(event.target.value))}>{[6,7,8].map(value=><option key={value} value={value} disabled={value<room.players.length}>{value} người</option>)}</select>:<b>{room.maxPlayers} người</b>}</div><div className="setting-row"><span>Vai trò</span><b>BÍ MẬT</b></div><button className="btn btn-primary btn-wide" onClick={()=>setShowMatchSettings(false)}>XONG</button></div></div>}
     </section>
   );
 }
