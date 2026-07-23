@@ -58,7 +58,7 @@ export const isValidPlacement=(board:Cell[][],card:Card,row:number,col:number,ma
  const own=new Set(dirs(card.kind as PathKind,card.rotation));
  const [entranceRow,entranceCol,entranceDirection]=entranceCell(map);
  const isEntranceCell=row===entranceRow&&col===entranceCol;
- let hasAdjacentCard=false;
+ let hasConnectedOpening=false;
  let connectedToEntrance=isEntranceCell&&own.has(entranceDirection);
 
  for(const d of ['U','R','D','L'] as Direction[]){
@@ -74,17 +74,17 @@ export const isValidPlacement=(board:Cell[][],card:Card,row:number,col:number,ma
 
   const neighbor=board[nr][nc];
   if(!neighbor?.card)continue;
-  hasAdjacentCard=true;
   if(neighbor.card.type!=='path')return false;
 
   const neighborOpens=dirs(neighbor.card.kind as PathKind,neighbor.card.rotation).includes(opposite[d]);
   // Hai ô kề nhau phải khớp tuyệt đối: cùng mở hoặc cùng đóng ở cạnh tiếp xúc.
   if(opens!==neighborOpens)return false;
+  if(opens&&neighborOpens)hasConnectedOpening=true;
 
  }
 
  // Cửa hầm đóng vai trò lá bài gốc bên ngoài bàn, cho phép đặt lá đầu tiên.
- return hasAdjacentCard||connectedToEntrance;
+ return hasConnectedOpening||connectedToEntrance;
 };
 
 export const placementReason=(board:Cell[][],card:Card,row:number,col:number,map:MapConfig=GOLD_MINE_MAP,obstacles:string[]=[])=>{
@@ -94,7 +94,7 @@ export const placementReason=(board:Cell[][],card:Card,row:number,col:number,map
  if(obstacles.includes(key(row,col)))return 'Ô đang có chướng ngại vật.';
  const own=new Set(dirs(card.kind as PathKind,card.rotation));
  const [entranceRow,entranceCol,entranceDirection]=entranceCell(map);
- let hasAdjacentCard=false;
+ let hasConnectedOpening=false;
  let connectedToEntrance=false;
  for(const d of ['U','R','D','L'] as Direction[]){
   const[dr,dc]=delta[d],nr=row+dr,nc=col+dc,opens=own.has(d);
@@ -104,12 +104,12 @@ export const placementReason=(board:Cell[][],card:Card,row:number,col:number,map
   }
   const neighbor=board[nr][nc];
   if(!neighbor?.card)continue;
-  hasAdjacentCard=true;
   if(neighbor.card.type!=='path')return 'Ô kế bên không phải mảnh đường.';
   const neighborOpens=dirs(neighbor.card.kind as PathKind,neighbor.card.rotation).includes(opposite[d]);
   if(opens!==neighborOpens)return `Cạnh ${d} không khớp với mảnh kế bên.`;
+  if(opens&&neighborOpens)hasConnectedOpening=true;
  }
- return hasAdjacentCard||connectedToEntrance?'Hợp lệ.':'Mảnh phải tiếp giáp với ít nhất một lá đã có trên bàn.';
+ return hasConnectedOpening||connectedToEntrance?'Hợp lệ.':'Mảnh phải nối bằng ít nhất một cửa mở với đường đã có.';
 };
 
 const refill=(s:GameState,p:Player)=>{if(s.deck.length)p.hand.push(...draw(s.deck,1))};

@@ -20,6 +20,7 @@ service cloud.firestore {
         && request.resource.data.uid == uid
         && request.resource.data.coins == 500
         && request.resource.data.exp == 0
+        && request.resource.data.rankPoints == 1000
         && request.resource.data.wins == 0
         && request.resource.data.losses == 0
         && request.resource.data.gamesPlayed == 0;
@@ -30,6 +31,8 @@ service cloud.firestore {
         && request.resource.data.email == resource.data.email
         && request.resource.data.coins is int && request.resource.data.coins >= 0 && request.resource.data.coins <= 1000000
         && request.resource.data.exp is int && request.resource.data.exp >= 0 && request.resource.data.exp <= 10000000
+        && (!request.resource.data.keys().hasAny(['rankPoints'])
+          || (request.resource.data.rankPoints is int && request.resource.data.rankPoints >= 0 && request.resource.data.rankPoints <= 10000))
         && request.resource.data.wins is int && request.resource.data.wins >= 0
         && request.resource.data.losses is int && request.resource.data.losses >= 0
         && request.resource.data.gamesPlayed == request.resource.data.wins + request.resource.data.losses

@@ -8,6 +8,14 @@ type ChatMessage={id:string;uid:string;displayName:string;photoURL?:string;text:
 const SystemMessage=({message}:{message:string})=>{
  const placed=message.match(/^(.+?) đặt (.+?) tại ([A-Z]+\d+)\.$/u);
  if(placed)return <p className="system-event placement-event">Người chơi <strong className="event-player">{placed[1]}</strong> đặt <strong className="event-card">{placed[2]}</strong> tại <strong className="event-position">{placed[3]}</strong>.</p>;
+ const action=message.match(/^(.+?) (?:đã )?dùng (.+?) (?:tại|lên) (.+?)\.$/u);
+ if(action)return <p className="system-event action-event"><strong className="event-player">{action[1]}</strong> đã dùng <strong className="event-card">{action[2]}</strong> lên <strong className="event-target">{action[3]}</strong>.</p>;
+ const scout=message.match(/^(.+?) đã bí mật thăm dò (.+?)\.$/u);
+ if(scout)return <p className="system-event scout-event"><strong className="event-player">{scout[1]}</strong> đã bí mật thăm dò <strong className="event-target">{scout[2]}</strong>.</p>;
+ const firstTurn=message.match(/^Người đi đầu tiên: (.+?)\.$/u);
+ if(firstTurn)return <p className="system-event">Người đi đầu tiên: <strong className="event-player">{firstTurn[1]}</strong>.</p>;
+ const playerEvent=message.match(/^(.+?)(\s+(?:đã\s+)?(?:bỏ|bị|được|không còn|dùng|thắng|thua|nhận|mất)\b.*)$/u);
+ if(playerEvent)return <p className="system-event"><strong className="event-player">{playerEvent[1]}</strong>{playerEvent[2]}</p>;
  return <p>{message}</p>;
 };
 export default function ChatPanel({roomId,compact=false,systemMessages=[]}:{roomId:string;compact?:boolean;systemMessages?:string[]}){
