@@ -78,6 +78,7 @@ async function hashPassword(value: string): Promise<string> {
 export default function Room() {
   const { profile } = useAuth();
   const [params] = useSearchParams();
+  const createLock = useRef(false);
 
   const [room, setRoom] = useState<Room | null>(null);
   const [waitingRooms, setWaitingRooms] = useState<Room[]>([]);
@@ -127,9 +128,12 @@ export default function Room() {
   }, [room?.id]);
 
   const createRoom = async () => {
+    if(createLock.current)return;
+    createLock.current=true;
     setError('');
     if (!profile || !db) {
       setError('Firebase chưa được cấu hình.');
+      createLock.current=false;
       return;
     }
     const activeRoomId=localStorage.getItem(`active-room:${profile.uid}`);
@@ -142,22 +146,26 @@ export default function Room() {
             setRoom(activeRoom);
             setShowCreate(false);
             setError(activeRoom.status==='started'?'Bạn đang ở trong một trận đấu.':'Bạn đang ở trong một phòng chờ. Hãy rời phòng hiện tại trước khi tạo phòng mới.');
+            createLock.current=false;
             return;
           }
         }
         localStorage.removeItem(`active-room:${profile.uid}`);
       }catch{
         setError('Không thể xác minh phòng hiện tại. Vui lòng thử lại.');
+        createLock.current=false;
         return;
       }
     }
     const safeRoomName=roomName.trim().replace(/\s+/g,' ').slice(0,40);
     if (safeRoomName.length < 3) {
       setError('Vui lòng nhập tên phòng.');
+      createLock.current=false;
       return;
     }
     if (roomMode === 'online' && visibility === 'private' && createPassword.trim().length < 4) {
       setError('Mật khẩu phòng riêng tư phải có ít nhất 4 ký tự.');
+      createLock.current=false;
       return;
     }
 
@@ -183,6 +191,7 @@ export default function Room() {
       const reference = await addDoc(collection(db, 'rooms'), data);
       const finalPlayers=roomMode==='ai'?[hostPlayer,...aiPlayers]:[hostPlayer];
       if(roomMode==='ai')await updateDoc(reference,{players:finalPlayers});
+      localStorage.setItem(`active-room:${profile.uid}`,reference.id);
       setRoom({ id: reference.id, ...data, players:finalPlayers } as Room);
       setShowCreate(false);
       setCreatePassword('');
@@ -190,6 +199,7 @@ export default function Room() {
       setError('Không thể tạo phòng. Hãy kiểm tra Firebase Rules và thử lại.');
     } finally {
       setCreating(false);
+      createLock.current=false;
     }
   };
 
@@ -221,7 +231,7 @@ export default function Room() {
         tx.update(ref,{players});
         return {...current,players};
       });
-      setRoom(joined);setPendingRoom(null);setJoinPassword('');
+      localStorage.setItem(`active-room:${profile.uid}`,joined.id);setRoom(joined);setPendingRoom(null);setJoinPassword('');
     } catch(e){setError(e instanceof Error?e.message:'Không thể tham gia phòng.');}
   };
 
