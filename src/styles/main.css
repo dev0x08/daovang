@@ -2603,7 +2603,7 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
 }
 
 /* v47: phone gameplay is landscape-only and must remain vertically scrollable. */
-@media (max-width:1000px) and (hover:none) and (pointer:coarse){
+@media (max-width:1200px){
   .fullscreen-prompt,
   .game-actions .ping-badge,
   .game-actions .action-fullscreen{
@@ -2630,7 +2630,7 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
   }
 }
 
-@media (max-width:1000px) and (hover:none) and (pointer:coarse) and (orientation:portrait){
+@media (max-width:1200px) and (orientation:portrait){
   .orientation-hint{
     position:fixed!important;
     inset:0!important;
@@ -2652,7 +2652,7 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
   }
 }
 
-@media (max-width:1000px) and (hover:none) and (pointer:coarse) and (orientation:landscape){
+@media (max-width:1200px) and (orientation:landscape){
   .orientation-hint{
     display:none!important;
   }
@@ -2715,6 +2715,406 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
     height:102px!important;
     min-height:102px!important;
     max-height:102px!important;
+  }
+}
+
+/* v48: 1024px mobile browsers previously fell into the fixed desktop grid. */
+@media (min-width:1001px) and (max-width:1200px) and (orientation:landscape){
+  html,
+  body,
+  #root,
+  .site-shell{
+    height:auto!important;
+    min-height:100%!important;
+    overflow-x:hidden!important;
+    overflow-y:visible!important;
+  }
+
+  .game-page,
+  .game-page:fullscreen{
+    width:100%!important;
+    height:auto!important;
+    min-height:100dvh!important;
+    max-height:none!important;
+    padding:5px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:5px!important;
+    overflow:visible!important;
+  }
+
+  .game-top{
+    order:1!important;
+    width:100%!important;
+    height:54px!important;
+    min-height:54px!important;
+    margin:0!important;
+    padding:5px 7px!important;
+  }
+
+  footer.redesigned-bottom-hud,
+  footer.redesigned-bottom-hud>.player-hand-row{
+    display:contents!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel{
+    order:2!important;
+    width:100%!important;
+    height:86px!important;
+    min-height:86px!important;
+    max-height:86px!important;
+    padding:4px!important;
+    display:grid!important;
+    grid-template-columns:42px minmax(0,1fr) 54px auto!important;
+    grid-template-rows:78px!important;
+    gap:3px!important;
+    overflow:hidden!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel>header{
+    width:42px!important;
+    min-width:42px!important;
+    height:78px!important;
+    padding:2px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel>header b{
+    font-size:8px!important;
+    letter-spacing:0!important;
+    line-height:1.1!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel>header small{
+    display:none!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-cards{
+    width:100%!important;
+    height:78px!important;
+    display:grid!important;
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    grid-template-rows:78px!important;
+    gap:3px!important;
+    overflow:hidden!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-card{
+    width:100%!important;
+    height:78px!important;
+    min-height:78px!important;
+    padding:2px!important;
+    display:grid!important;
+    grid-template-rows:55px 16px!important;
+    gap:1px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-card>span,
+  footer.redesigned-bottom-hud .hand-hud-card .tunnel-svg{
+    width:52px!important;
+    height:52px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-card>b{
+    font-size:8px!important;
+    line-height:1!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-discard{
+    width:54px!important;
+    min-width:54px!important;
+    height:78px!important;
+    min-height:78px!important;
+    padding:3px!important;
+    flex-direction:column!important;
+    gap:3px!important;
+    border-radius:7px!important;
+    background:linear-gradient(180deg,#27191a,#160d0e)!important;
+    border:1px solid #81413f!important;
+    color:#ffaaa4!important;
+    font-size:8px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-discard svg{
+    width:17px!important;
+    height:17px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel>.bottom-special-hand{
+    width:96px!important;
+    min-width:96px!important;
+    height:78px!important;
+    min-height:78px!important;
+    max-height:78px!important;
+  }
+
+  .game-layout-v5{
+    order:3!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    display:block!important;
+    overflow:visible!important;
+  }
+
+  .board-wrap{
+    position:relative!important;
+    width:100%!important;
+    height:460px!important;
+    min-height:460px!important;
+    padding:4px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    touch-action:pan-x pan-y!important;
+    overscroll-behavior-x:contain!important;
+  }
+
+  .board-wrap>.mine-board-shell.dynamic{
+    position:static!important;
+    inset:auto!important;
+    width:1120px!important;
+    min-width:1120px!important;
+    max-width:none!important;
+    height:438px!important;
+    min-height:438px!important;
+    display:flex!important;
+  }
+
+  .board-wrap>.board-help{
+    position:sticky!important;
+    left:0!important;
+    width:min(1120px,100%)!important;
+  }
+
+  .game-layout-v5>.battle-right-column{
+    display:none!important;
+  }
+
+  footer.redesigned-bottom-hud .player-progress-card{
+    order:4!important;
+    width:100%!important;
+    height:72px!important;
+    min-height:72px!important;
+    max-height:72px!important;
+    margin:0!important;
+  }
+}
+
+/* v49: mobile landscape follows the board + single compact player/hand rail. */
+@media (max-width:1200px) and (orientation:landscape){
+  .game-page,
+  .game-page:fullscreen{
+    display:flex!important;
+    flex-direction:column!important;
+    height:auto!important;
+    min-height:100dvh!important;
+    max-height:none!important;
+    overflow-x:hidden!important;
+    overflow-y:visible!important;
+  }
+
+  .game-top{
+    order:1!important;
+  }
+
+  .game-layout-v5{
+    order:2!important;
+    display:block!important;
+    width:100%!important;
+    height:auto!important;
+    min-height:0!important;
+    overflow:visible!important;
+  }
+
+  .board-wrap{
+    width:100%!important;
+    height:430px!important;
+    min-height:430px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    touch-action:pan-x pan-y!important;
+  }
+
+  .board-wrap>.mine-board-shell.dynamic{
+    position:static!important;
+    inset:auto!important;
+    width:1120px!important;
+    min-width:1120px!important;
+    max-width:none!important;
+    height:408px!important;
+    min-height:408px!important;
+    display:flex!important;
+  }
+
+  .game-layout-v5>.battle-right-column{
+    display:none!important;
+  }
+
+  footer.redesigned-bottom-hud{
+    order:3!important;
+    position:static!important;
+    inset:auto!important;
+    display:block!important;
+    width:100%!important;
+    height:92px!important;
+    min-height:92px!important;
+    margin:0!important;
+    padding:4px!important;
+    overflow:hidden!important;
+    background:#07111b!important;
+    border:1px solid #73551d!important;
+  }
+
+  footer.redesigned-bottom-hud>.player-hand-row{
+    display:grid!important;
+    grid-template-columns:150px minmax(0,1fr)!important;
+    align-items:stretch!important;
+    width:100%!important;
+    height:82px!important;
+    gap:4px!important;
+  }
+
+  footer.redesigned-bottom-hud .player-progress-card{
+    order:initial!important;
+    position:relative!important;
+    width:150px!important;
+    min-width:150px!important;
+    height:82px!important;
+    min-height:82px!important;
+    max-height:82px!important;
+    margin:0!important;
+    padding:8px 10px!important;
+    display:flex!important;
+    align-items:center!important;
+    border:1px solid #354b61!important;
+    border-radius:6px!important;
+    background:linear-gradient(180deg,#101d2a,#09131e)!important;
+  }
+
+  footer.redesigned-bottom-hud .progress-avatar-wrap,
+  footer.redesigned-bottom-hud .progress-name-line>span,
+  footer.redesigned-bottom-hud .exp-values,
+  footer.redesigned-bottom-hud .exp-track{
+    display:none!important;
+  }
+
+  footer.redesigned-bottom-hud .progress-player-copy{
+    width:100%!important;
+    min-width:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+    gap:6px!important;
+  }
+
+  footer.redesigned-bottom-hud .progress-name-line{
+    display:block!important;
+    min-width:0!important;
+  }
+
+  footer.redesigned-bottom-hud .progress-name-line>b{
+    display:block!important;
+    overflow:hidden!important;
+    color:#f7f3e8!important;
+    font:900 15px/1 'Barlow Condensed'!important;
+    letter-spacing:.4px!important;
+    white-space:nowrap!important;
+    text-overflow:ellipsis!important;
+  }
+
+  footer.redesigned-bottom-hud .progress-player-copy>strong{
+    width:max-content!important;
+    margin:0!important;
+    padding:3px 6px!important;
+    border:1px solid currentColor!important;
+    border-radius:3px!important;
+    font:900 8px/1 'Barlow Condensed'!important;
+    letter-spacing:.8px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel{
+    order:initial!important;
+    width:100%!important;
+    min-width:0!important;
+    height:82px!important;
+    min-height:82px!important;
+    max-height:82px!important;
+    padding:3px!important;
+    display:grid!important;
+    grid-template-columns:42px minmax(0,1fr) 50px auto!important;
+    grid-template-rows:74px!important;
+    gap:3px!important;
+    overflow:hidden!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel>header{
+    width:42px!important;
+    min-width:42px!important;
+    height:74px!important;
+    padding:2px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-cards{
+    width:100%!important;
+    height:74px!important;
+    grid-template-columns:repeat(6,minmax(72px,1fr))!important;
+    grid-template-rows:74px!important;
+    gap:3px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    scrollbar-width:none!important;
+    touch-action:pan-x!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-cards::-webkit-scrollbar{
+    display:none!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-card{
+    height:74px!important;
+    min-height:74px!important;
+    grid-template-rows:51px 16px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-card>span,
+  footer.redesigned-bottom-hud .hand-hud-card .tunnel-svg{
+    width:48px!important;
+    height:48px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-discard{
+    width:50px!important;
+    min-width:50px!important;
+    height:74px!important;
+    min-height:74px!important;
+  }
+
+  footer.redesigned-bottom-hud .hand-hud-panel>.bottom-special-hand{
+    width:88px!important;
+    min-width:88px!important;
+    height:74px!important;
+    min-height:74px!important;
+    max-height:74px!important;
+  }
+}
+
+@media (max-width:720px) and (orientation:landscape){
+  footer.redesigned-bottom-hud>.player-hand-row{
+    grid-template-columns:112px minmax(0,1fr)!important;
+  }
+
+  footer.redesigned-bottom-hud .player-progress-card{
+    width:112px!important;
+    min-width:112px!important;
+    padding:7px!important;
+  }
+
+  footer.redesigned-bottom-hud .progress-name-line>b{
+    font-size:13px!important;
   }
 }
 
