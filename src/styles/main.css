@@ -2408,10 +2408,10 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
 
 .game-page.board-default .mine-rock-sprite,
 .game-page.board-volcano .mine-rock-sprite{
-  width:84%!important;
-  height:84%!important;
-  max-width:72px!important;
-  max-height:72px!important;
+  width:132%!important;
+  height:132%!important;
+  max-width:none!important;
+  max-height:none!important;
   display:block!important;
   object-fit:contain!important;
   filter:drop-shadow(0 5px 5px rgba(24,10,2,.62))!important;
@@ -2436,8 +2436,8 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
 @media(max-width:1200px){
   .site-shell.game-route .game-page.board-default .mine-rock-sprite,
   .site-shell.game-route .game-page.board-volcano .mine-rock-sprite{
-    width:88%!important;
-    height:88%!important;
+    width:140%!important;
+    height:140%!important;
   }
 
   .site-shell.game-route .treasure-column.compact .treasure-chest-sprite{
