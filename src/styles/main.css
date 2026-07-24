@@ -2451,6 +2451,8 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
 .mobile-turn-strip,.mobile-player-menu,.mobile-player-menu-backdrop{display:none}
 .mobile-settings-compact{display:none}
 .mobile-settings-player-list{display:none}
+.mobile-chat-fab{touch-action:none;user-select:none;-webkit-user-select:none}
+.mobile-chat-fab.is-dragged{left:var(--chat-x)!important;top:var(--chat-y)!important;right:auto!important;bottom:auto!important}
 @media(max-width:1000px){
   /* Mobile reading order: status -> hand -> board -> avatar. */
   footer.redesigned-bottom-hud,footer.redesigned-bottom-hud>.player-hand-row{display:contents!important}
@@ -3863,6 +3865,111 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
   .site-shell.game-route .game-page,
   .site-shell.game-route .game-page:fullscreen{
     min-height:calc(408px + 24px + 72px + 16px)!important;
+  }
+}
+
+/* v59: center discard and wolf-special controls like regular hand cards. */
+@media (max-width:1200px) and (orientation:landscape){
+  .site-shell.game-route footer.redesigned-bottom-hud .hand-hud-discard{
+    box-sizing:border-box!important;
+    margin:0!important;
+    padding:4px 2px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:4px!important;
+    text-align:center!important;
+    line-height:1!important;
+  }
+
+  .site-shell.game-route footer.redesigned-bottom-hud .hand-hud-discard>svg{
+    flex:0 0 auto!important;
+    width:18px!important;
+    height:18px!important;
+    margin:0!important;
+    display:block!important;
+  }
+
+  .site-shell.game-route footer.redesigned-bottom-hud .hand-hud-discard>span{
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    display:block!important;
+    color:inherit!important;
+    font-size:7px!important;
+    line-height:1.1!important;
+    text-align:center!important;
+  }
+
+  .site-shell.game-route footer.redesigned-bottom-hud .hand-hud-panel>.bottom-special-hand{
+    box-sizing:border-box!important;
+    margin:0!important;
+    padding:2px!important;
+    display:grid!important;
+    place-items:center!important;
+    overflow:hidden!important;
+  }
+
+  .site-shell.game-route footer.redesigned-bottom-hud .bottom-special-hand>header{
+    display:none!important;
+  }
+
+  .site-shell.game-route footer.redesigned-bottom-hud .bottom-special-grid{
+    width:100%!important;
+    height:100%!important;
+    margin:0!important;
+    padding:0!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    place-items:stretch!important;
+  }
+
+  .site-shell.game-route footer.redesigned-bottom-hud .bottom-special-card{
+    box-sizing:border-box!important;
+    width:100%!important;
+    height:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:4px 3px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:3px!important;
+    text-align:center!important;
+  }
+
+  .site-shell.game-route footer.redesigned-bottom-hud .bottom-special-card>svg{
+    flex:0 0 auto!important;
+    width:20px!important;
+    height:20px!important;
+    margin:0!important;
+  }
+
+  .site-shell.game-route footer.redesigned-bottom-hud .bottom-special-card>span{
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    gap:2px!important;
+    text-align:center!important;
+  }
+
+  .site-shell.game-route footer.redesigned-bottom-hud .bottom-special-card b{
+    width:100%!important;
+    margin:0!important;
+    font-size:7px!important;
+    line-height:1!important;
+    text-align:center!important;
+  }
+
+  .site-shell.game-route footer.redesigned-bottom-hud .bottom-special-card small{
+    display:none!important;
   }
 }
 

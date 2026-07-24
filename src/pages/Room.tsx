@@ -38,6 +38,8 @@ import { Equipped, useAuth } from '../context/AuthContext';
 import PlayerIdentity from '../components/PlayerIdentity';
 import ChatPanel from '../components/ChatPanel';
 import { db } from '../lib/firebase';
+import { GOLD_MINE_MAP, newRoomGame } from '../lib/game';
+import { createPresence, TURN_MS } from '../lib/onlineMatch';
 
 type Player = {
   uid: string;
@@ -322,6 +324,10 @@ export default function Room() {
         if(current.status!=='waiting')throw new Error('Phòng đã bắt đầu.');
         if(current.players.length!==current.maxPlayers)throw new Error(`Cần đúng ${current.maxPlayers} người chơi.`);
         if(new Set(current.players.map(p=>p.uid)).size!==current.players.length)throw new Error('Danh sách người chơi không hợp lệ.');
+        const now=Date.now();
+        const gameState=newRoomGame(current.id,current.players,GOLD_MINE_MAP);
+        const participantIds=current.players.filter(player=>!player.bot).map(player=>player.uid);
+        tx.set(doc(db!,'matches',current.id),{roomId:current.id,participantIds,state:gameState,presence:createPresence(participantIds,now),turnStartedAt:now,turnDeadline:now+TURN_MS,revision:0});
         tx.update(ref,{status:'started',startedAt:serverTimestamp()});return current.players.length;
       });
       window.location.assign(`/game?mode=room&room=${encodeURIComponent(room.id)}&players=${count}`);
