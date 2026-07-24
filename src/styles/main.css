@@ -2723,6 +2723,65 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
   }
 }
 
+/* v61: expose each skin as one continuous illustrated map beneath the grid. */
+.game-page.board-default .mine-board-shell.dynamic>.dynamic-board,
+.game-page.board-volcano .mine-board-shell.dynamic>.dynamic-board{
+  background:
+    linear-gradient(rgba(8,7,5,.10),rgba(4,5,4,.24)),
+    url('/images/board-skins/mine-cavern.png') center/cover!important;
+}
+
+.game-page.board-ice .mine-board-shell.dynamic>.dynamic-board{
+  background:
+    linear-gradient(rgba(2,19,35,.06),rgba(2,12,25,.20)),
+    url('/images/board-skins/ice-cavern.png') center/cover!important;
+}
+
+.game-page.board-default .dynamic-board>.cell,
+.game-page.board-volcano .dynamic-board>.cell{
+  background:linear-gradient(145deg,rgba(22,19,14,.22),rgba(5,7,6,.44))!important;
+  border-color:rgba(190,137,42,.58)!important;
+  backdrop-filter:none!important;
+}
+
+.game-page.board-ice .dynamic-board>.cell{
+  background:linear-gradient(145deg,rgba(19,66,91,.18),rgba(3,20,36,.40))!important;
+  border-color:rgba(100,210,247,.60)!important;
+  backdrop-filter:none!important;
+}
+
+.game-page.board-default .dynamic-board>.cell:before,
+.game-page.board-volcano .dynamic-board>.cell:before{
+  border-color:rgba(248,195,86,.06)!important;
+  background:radial-gradient(circle at 28% 20%,rgba(255,191,72,.045),transparent 46%)!important;
+}
+
+.game-page.board-ice .dynamic-board>.cell:before{
+  border-color:rgba(167,234,255,.10)!important;
+  background:linear-gradient(135deg,rgba(184,240,255,.07),transparent 40%,rgba(49,173,220,.04))!important;
+}
+
+.game-page.board-default .dynamic-board>.cell.occupied,
+.game-page.board-volcano .dynamic-board>.cell.occupied{
+  background:rgba(8,7,5,.30)!important;
+}
+
+.game-page.board-ice .dynamic-board>.cell.occupied{
+  background:rgba(2,20,36,.28)!important;
+}
+
+.game-page.board-default .mine-entrance,
+.game-page.board-default .treasure-column,
+.game-page.board-volcano .mine-entrance,
+.game-page.board-volcano .treasure-column{
+  background:linear-gradient(180deg,rgba(15,11,6,.28),rgba(3,5,4,.48))!important;
+}
+
+.game-page.board-ice .mine-entrance,
+.game-page.board-ice .treasure-column{
+  background:linear-gradient(180deg,rgba(9,49,72,.24),rgba(2,14,27,.46))!important;
+}
+
 /* v60: illustrated board skins — mine cavern and ice cavern. */
 .game-page.board-default,
 .game-page.board-volcano{
@@ -2956,6 +3015,33 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
     margin-top:10px!important;
     font-size:10px!important;
   }
+}
+
+/* v62: final skin surface precedence. */
+.game-page.board-default .mine-board-shell.dynamic>.dynamic-board,
+.game-page.board-volcano .mine-board-shell.dynamic>.dynamic-board{
+  background:linear-gradient(rgba(8,7,5,.08),rgba(4,5,4,.20)),url('/images/board-skins/mine-cavern.png') center/cover!important;
+}
+.game-page.board-ice .mine-board-shell.dynamic>.dynamic-board{
+  background:linear-gradient(rgba(2,19,35,.04),rgba(2,12,25,.16)),url('/images/board-skins/ice-cavern.png') center/cover!important;
+}
+.game-page.board-default .mine-board-shell.dynamic>.dynamic-board>.cell,
+.game-page.board-volcano .mine-board-shell.dynamic>.dynamic-board>.cell{
+  background:linear-gradient(145deg,rgba(22,19,14,.16),rgba(5,7,6,.34))!important;
+  border-color:rgba(210,153,47,.64)!important;
+  backdrop-filter:none!important;
+}
+.game-page.board-ice .mine-board-shell.dynamic>.dynamic-board>.cell{
+  background:linear-gradient(145deg,rgba(19,66,91,.13),rgba(3,20,36,.30))!important;
+  border-color:rgba(111,220,255,.68)!important;
+  backdrop-filter:none!important;
+}
+.game-page.board-default .mine-board-shell.dynamic>.dynamic-board>.cell.occupied,
+.game-page.board-volcano .mine-board-shell.dynamic>.dynamic-board>.cell.occupied{
+  background:rgba(8,7,5,.24)!important;
+}
+.game-page.board-ice .mine-board-shell.dynamic>.dynamic-board>.cell.occupied{
+  background:rgba(2,20,36,.22)!important;
 }
 
 /* v56: avatar actions render in a viewport-level modal, outside clipped HUDs. */
