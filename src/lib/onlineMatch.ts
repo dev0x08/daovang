@@ -7,6 +7,7 @@ export type OnlineMatch={
  participantIds:string[];
  state:GameState;
  presence:MatchPresence;
+ autoDiscardCounts:Record<string,number>;
  turnStartedAt:number;
  turnDeadline:number;
  revision:number;
@@ -23,7 +24,7 @@ export const encodeOnlineMatch=(match:OnlineMatch):OnlineMatchDocument=>{
 };
 export const decodeOnlineMatch=(data:OnlineMatchDocument):OnlineMatch=>{
  const{stateJson,...rest}=data;
- return{...rest,state:JSON.parse(stateJson) as GameState};
+ return{...rest,autoDiscardCounts:rest.autoDiscardCounts||{},state:JSON.parse(stateJson) as GameState};
 };
 
 const nextActiveTurn=(match:OnlineMatch,from:number)=>{
@@ -80,7 +81,13 @@ export const timeoutTurn=(match:OnlineMatch,now=Date.now()):OnlineMatch=>{
   const index=Math.floor(Math.random()*player.hand.length);
   const advanced=discardCard(next.state,next.state.turn,index);
   next={...next,state:advanced};
-  next.state.logs[0]=`${player.name} hết 10 giây — hệ thống tự bỏ một lá ngẫu nhiên.`;
+  const count=(next.autoDiscardCounts[player.id]||0)+1;
+  next.autoDiscardCounts[player.id]=count;
+  next.state.logs[0]=`${player.name} hết 10 giây — hệ thống tự bỏ một lá ngẫu nhiên (${count}/3).`;
+  if(!player.isBot&&count>=3&&next.presence[player.id]){
+   next.presence[player.id]={...next.presence[player.id],status:'left',disconnectDeadline:null,lastSeen:now};
+   next.state.logs.unshift(`${player.name} đã bị mời khỏi phòng vì tự động bỏ lượt 3 lần.`);
+  }
   if(next.presence[next.state.players[next.state.turn].id]?.status==='left')next.state.turn=nextActiveTurn(next,next.state.turn);
  }
  next.turnStartedAt=now;

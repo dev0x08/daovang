@@ -2382,7 +2382,20 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
   text-shadow:0 0 8px rgba(255,70,60,.65)!important;
 }
 
-/* v63 — illustrated mine obstacles and hidden treasure */
+/* v63 — turn countdown and illustrated mine assets */
+.turn-pill.turn-ending,
+.mobile-turn-strip.turn-ending{
+  border-color:#d84e45!important;
+  background:linear-gradient(180deg,#4a1718,#251011)!important;
+  color:#ffb0aa!important;
+  animation:turnEndingPulse .65s ease-in-out infinite alternate;
+}
+
+@keyframes turnEndingPulse{
+  to{filter:brightness(1.35);box-shadow:0 0 14px rgba(220,67,58,.42)}
+}
+
+/* Illustrated mine obstacles and hidden treasure */
 .game-page.board-default .obstacle-art.cliff,
 .game-page.board-volcano .obstacle-art.cliff{
   width:100%!important;
