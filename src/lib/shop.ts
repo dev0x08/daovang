@@ -3,6 +3,7 @@ export type ShopItem={id:string;name:string;description:string;category:ShopCate
 export const SHOP_ITEMS:ShopItem[]=[
  {id:'board-ice',name:'Hang Băng',description:'Biến bàn cờ thành hang băng cổ đại với tinh thể xanh phát sáng.',category:'boardSkin',price:900,preview:'❄'},
  {id:'board-volcano',name:'Hầm Mỏ',description:'Không gian hầm mỏ đá tối, khung gỗ cũ và ánh đèn vàng bí ẩn.',category:'boardSkin',price:1100,preview:'⛏'},
+ {id:'board-shipwreck',name:'Tàu Đắm',description:'Khám phá đáy biển giữa xác tàu cổ, gỗ mục và kho báu hoàng kim.',category:'boardSkin',price:1250,preview:'⚓'},
  {id:'piece-gold',name:'Quân Hoàng Kim',description:'Đường hầm và quân cờ ánh vàng.',category:'pieceSkin',price:700,preview:'◆'},
  {id:'piece-crystal',name:'Quân Pha Lê',description:'Quân cờ pha lê xanh bí ẩn.',category:'pieceSkin',price:950,preview:'◇'},
  {id:'frame-gold',name:'Khung Vàng Cổ',description:'Khung avatar ánh vàng cổ điển.',category:'frame',price:450,preview:'◆'},

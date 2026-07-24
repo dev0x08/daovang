@@ -64,6 +64,7 @@ type Room = {
   maxPlayers: number;
   players: Player[];
   mode?: 'online' | 'ai';
+  mapSkin?: 'board-volcano' | 'board-ice' | 'board-shipwreck';
 };
 
 const ROOM_CODE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -189,6 +190,7 @@ export default function Room() {
         mode: roomMode,
         passwordHash,
         maxPlayers: 6,
+        mapSkin: 'board-volcano' as const,
         players: [hostPlayer],
         createdAt: serverTimestamp(),
       };
@@ -291,6 +293,11 @@ export default function Room() {
     try{await updateDoc(doc(db,'rooms',room.id),{maxPlayers});setError('')}catch{setError('Không thể đổi số người chơi. Hãy cập nhật Firebase Rules.')}
   };
 
+  const changeMapSkin=async(mapSkin:NonNullable<Room['mapSkin']>)=>{
+    if(!room||!db||profile?.uid!==room.hostId)return;
+    try{await updateDoc(doc(db,'rooms',room.id),{mapSkin});setError('')}catch{setError('Không thể đổi bản đồ. Hãy cập nhật Firebase Rules.')}
+  };
+
   const kickPlayer=async(targetUid:string)=>{
     if(!room||!db||profile?.uid!==room.hostId||targetUid===room.hostId)return;
     try{
@@ -327,7 +334,7 @@ export default function Room() {
         const now=Date.now();
         const gameState=newRoomGame(current.id,current.players,GOLD_MINE_MAP);
         const participantIds=current.players.filter(player=>!player.bot).map(player=>player.uid);
-        tx.set(doc(db!,'matches',current.id),encodeOnlineMatch({roomId:current.id,participantIds,state:gameState,presence:createPresence(participantIds,now),autoDiscardCounts:{},turnStartedAt:now,turnDeadline:now+TURN_MS,revision:0}));
+        tx.set(doc(db!,'matches',current.id),encodeOnlineMatch({roomId:current.id,boardSkin:current.mapSkin||'board-volcano',participantIds,state:gameState,presence:createPresence(participantIds,now),autoDiscardCounts:{},turnStartedAt:now,turnDeadline:now+TURN_MS,revision:0}));
         tx.update(ref,{status:'started',startedAt:serverTimestamp()});return current.players.length;
       });
       window.location.assign(`/game?mode=room&room=${encodeURIComponent(room.id)}&players=${count}`);
@@ -619,7 +626,7 @@ export default function Room() {
 
         <div className="room-side-stack"><div className="panel lobby-chat-card"><ChatPanel roomId={room.id}/></div></div>
       </div>
-      {showMatchSettings&&<div className="room-modal-backdrop" onMouseDown={()=>setShowMatchSettings(false)}><div className="room-modal match-settings-modal" onMouseDown={event=>event.stopPropagation()}><button className="room-modal-close" onClick={()=>setShowMatchSettings(false)}><X /></button><div className="room-modal-icon"><Settings /></div><span>PHÒNG CHỜ</span><h2>THIẾT LẬP TRẬN</h2><div className="setting-row"><span>Loại phòng</span><b>{room.mode==='ai'?'CHƠI VỚI AI':room.visibility==='public'?'CÔNG KHAI':'RIÊNG TƯ'}</b></div><div className="setting-row"><span>Bàn chơi</span><b>12×5</b></div><div className="setting-row match-player-limit"><span>Người chơi</span>{isHost?<select value={room.maxPlayers} onChange={event=>void changeMaxPlayers(Number(event.target.value))}>{[6,7,8].map(value=><option key={value} value={value} disabled={value<room.players.length}>{value} người</option>)}</select>:<b>{room.maxPlayers} người</b>}</div><div className="setting-row"><span>Vai trò</span><b>BÍ MẬT</b></div><button className="btn btn-primary btn-wide" onClick={()=>setShowMatchSettings(false)}>XONG</button></div></div>}
+      {showMatchSettings&&<div className="room-modal-backdrop" onMouseDown={()=>setShowMatchSettings(false)}><div className="room-modal match-settings-modal" onMouseDown={event=>event.stopPropagation()}><button className="room-modal-close" onClick={()=>setShowMatchSettings(false)}><X /></button><div className="room-modal-icon"><Settings /></div><span>PHÒNG CHỜ</span><h2>THIẾT LẬP TRẬN</h2><div className="setting-row"><span>Loại phòng</span><b>{room.mode==='ai'?'CHƠI VỚI AI':room.visibility==='public'?'CÔNG KHAI':'RIÊNG TƯ'}</b></div><div className="setting-row match-map-picker"><span>Bản đồ</span>{isHost?<select value={room.mapSkin||'board-volcano'} onChange={event=>void changeMapSkin(event.target.value as NonNullable<Room['mapSkin']>)}><option value="board-volcano">Hầm Mỏ</option><option value="board-ice">Hang Băng</option><option value="board-shipwreck">Tàu Đắm</option></select>:<b>{room.mapSkin==='board-ice'?'HANG BĂNG':room.mapSkin==='board-shipwreck'?'TÀU ĐẮM':'HẦM MỎ'}</b>}</div><div className="setting-row match-player-limit"><span>Người chơi</span>{isHost?<select value={room.maxPlayers} onChange={event=>void changeMaxPlayers(Number(event.target.value))}>{[6,7,8].map(value=><option key={value} value={value} disabled={value<room.players.length}>{value} người</option>)}</select>:<b>{room.maxPlayers} người</b>}</div><div className="setting-row"><span>Vai trò</span><b>BÍ MẬT</b></div><button className="btn btn-primary btn-wide" onClick={()=>setShowMatchSettings(false)}>XONG</button></div></div>}
     </section>
   );
 }

@@ -1,9 +1,10 @@
-import { GameState, discardCard } from './game';
+import { GameState, discardCard, skipTurn } from './game';
 
 export type PresenceStatus='online'|'disconnected'|'left';
 export type MatchPresence=Record<string,{status:PresenceStatus;lastSeen:number;disconnectDeadline:number|null}>;
 export type OnlineMatch={
  roomId:string;
+ boardSkin:'board-volcano'|'board-ice'|'board-shipwreck';
  participantIds:string[];
  state:GameState;
  presence:MatchPresence;
@@ -14,7 +15,7 @@ export type OnlineMatch={
 };
 export type OnlineMatchDocument=Omit<OnlineMatch,'state'>&{stateJson:string};
 
-export const TURN_MS=10_000;
+export const TURN_MS=20_000;
 export const RECONNECT_MS=60_000;
 
 export const createPresence=(ids:string[],now=Date.now()):MatchPresence=>Object.fromEntries(ids.map(id=>[id,{status:'online',lastSeen:now,disconnectDeadline:null}]));
@@ -24,7 +25,7 @@ export const encodeOnlineMatch=(match:OnlineMatch):OnlineMatchDocument=>{
 };
 export const decodeOnlineMatch=(data:OnlineMatchDocument):OnlineMatch=>{
  const{stateJson,...rest}=data;
- return{...rest,autoDiscardCounts:rest.autoDiscardCounts||{},state:JSON.parse(stateJson) as GameState};
+ return{...rest,boardSkin:rest.boardSkin||'board-volcano',autoDiscardCounts:rest.autoDiscardCounts||{},state:JSON.parse(stateJson) as GameState};
 };
 
 const nextActiveTurn=(match:OnlineMatch,from:number)=>{
@@ -74,22 +75,23 @@ export const timeoutTurn=(match:OnlineMatch,now=Date.now()):OnlineMatch=>{
  const player=next.state.players[next.state.turn];
  if(!player||player.hand.length===0){
   next=structuredClone(next) as OnlineMatch;
-  next.state.turn=nextActiveTurn(next,next.state.turn);
-  next.state.turns++;
-  next.state.logs.unshift(`${player?.name||'Người chơi'} hết thời gian và bị bỏ lượt.`);
+  next.state=player?skipTurn(next.state,next.state.turn,`${player.name} hết ${TURN_MS/1000} giây và bị bỏ lượt.`):next.state;
  }else{
   const index=Math.floor(Math.random()*player.hand.length);
   const advanced=discardCard(next.state,next.state.turn,index);
   next={...next,state:advanced};
+  next.state.logs[0]=`${player.name} hết ${TURN_MS/1000} giây — hệ thống tự bỏ một lá ngẫu nhiên.`;
+ }
+ if(player&&!player.isBot){
   const count=(next.autoDiscardCounts[player.id]||0)+1;
   next.autoDiscardCounts[player.id]=count;
-  next.state.logs[0]=`${player.name} hết 10 giây — hệ thống tự bỏ một lá ngẫu nhiên (${count}/3).`;
-  if(!player.isBot&&count>=3&&next.presence[player.id]){
+  next.state.logs[0]=`${next.state.logs[0]} (${count}/3)`;
+  if(count>=3&&next.presence[player.id]){
    next.presence[player.id]={...next.presence[player.id],status:'left',disconnectDeadline:null,lastSeen:now};
    next.state.logs.unshift(`${player.name} đã bị mời khỏi phòng vì tự động bỏ lượt 3 lần.`);
   }
-  if(next.presence[next.state.players[next.state.turn].id]?.status==='left')next.state.turn=nextActiveTurn(next,next.state.turn);
  }
+ if(!next.state.winner&&next.presence[next.state.players[next.state.turn].id]?.status==='left')next.state.turn=nextActiveTurn(next,next.state.turn);
  next.turnStartedAt=now;
  next.turnDeadline=now+TURN_MS;
  next.revision++;

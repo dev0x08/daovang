@@ -1026,7 +1026,7 @@
 .lobby-player-note{display:block;margin:8px 15px 0;text-align:center;color:#7f8d99;font-size:9px}
 .match-settings-modal{width:min(500px,100%)}
 .match-settings-modal .setting-row{margin:0;height:52px}
-.match-player-limit select{min-width:118px;height:36px;padding:0 10px;border:1px solid #725a27;border-radius:5px;background:#101923;color:#f2c45b;font-weight:800;cursor:pointer}
+.match-player-limit select,.match-map-picker select{min-width:118px;height:36px;padding:0 10px;border:1px solid #725a27;border-radius:5px;background:#101923;color:#f2c45b;font-weight:800;cursor:pointer}
 .lobby-player-grid .identity-trailing{gap:7px!important}
 .kick-player-button{height:28px;padding:0 8px;display:inline-flex;align-items:center;gap:4px;border:1px solid #713936;border-radius:5px;background:#281112;color:#ff8178;font:900 8px 'Barlow Condensed';letter-spacing:.7px;cursor:pointer}
 .kick-player-button:hover{border-color:#e15c53;background:#411719;color:#ffaaa4}.kick-player-button svg{width:13px;height:13px}
@@ -3110,6 +3110,108 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
 }
 .game-page.board-ice .mine-board-shell.dynamic>.dynamic-board>.cell.occupied{
   background:rgba(2,23,39,.12)!important;
+}
+
+/* v64: room-selected ice and shipwreck maps with themed obstacles/treasure. */
+.game-page.board-shipwreck{
+  --skin-accent:#d6ab4d;
+  --skin-accent-soft:rgba(55,190,178,.26);
+  --skin-line:#386e69;
+  background:linear-gradient(rgba(1,24,27,.22),rgba(2,13,17,.62)),url('/images/board-skins/shipwreck-cavern.png') center/cover fixed!important;
+}
+
+.game-page.board-shipwreck .board-wrap{
+  border-color:#315e5b!important;
+  outline-color:#b88a35!important;
+  background:rgba(1,17,20,.32)!important;
+  box-shadow:0 20px 60px rgba(0,0,0,.76),0 0 26px rgba(39,173,164,.22)!important;
+}
+
+.game-page.board-shipwreck .mine-board-shell.dynamic,
+.game-page.board-shipwreck .mine-board-shell.dynamic>.dynamic-board{
+  border-color:#537e72!important;
+  background:linear-gradient(rgba(1,40,42,.02),rgba(2,20,24,.09)),url('/images/board-skins/shipwreck-cavern.png') center/cover!important;
+  box-shadow:inset 0 0 65px rgba(0,17,20,.66),0 0 24px rgba(48,167,156,.20)!important;
+}
+
+.game-page.board-shipwreck .mine-board-shell.dynamic>.dynamic-board>.cell{
+  background:linear-gradient(145deg,rgba(60,88,74,.035),rgba(2,25,27,.13))!important;
+  border-color:rgba(37,86,80,.92)!important;
+  backdrop-filter:none!important;
+  box-shadow:inset 0 0 0 1px rgba(211,170,81,.11),0 1px 3px rgba(0,17,18,.52)!important;
+}
+
+.game-page.board-shipwreck .mine-board-shell.dynamic>.dynamic-board>.cell.occupied{
+  background:rgba(1,26,28,.14)!important;
+}
+
+.game-page.board-shipwreck .dynamic-board>.cell:hover,
+.game-page.board-shipwreck .dynamic-board>.cell.legal{
+  border-color:#d6ab4d!important;
+  box-shadow:inset 0 0 18px rgba(43,190,176,.22),0 0 11px rgba(214,171,77,.24)!important;
+}
+
+.game-page.board-shipwreck .mine-entrance,
+.game-page.board-shipwreck .treasure-column{
+  background:linear-gradient(180deg,rgba(7,48,48,.25),rgba(1,18,21,.50))!important;
+  color:#e3bd68!important;
+}
+
+.game-page .obstacle-art.cliff{
+  width:100%!important;
+  height:100%!important;
+  padding:2px!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:visible!important;
+}
+
+.game-page .board-obstacle-sprite{
+  width:116%!important;
+  height:116%!important;
+  max-width:none!important;
+  max-height:none!important;
+  display:block!important;
+  object-fit:contain!important;
+  filter:drop-shadow(0 5px 5px rgba(0,0,0,.62))!important;
+}
+
+.game-page.board-volcano .board-obstacle-sprite,
+.game-page.board-default .board-obstacle-sprite{
+  width:132%!important;
+  height:132%!important;
+}
+
+.treasure-column.compact .board-treasure-sprite{
+  width:88%!important;
+  height:88%!important;
+  max-width:54px!important;
+  max-height:54px!important;
+  display:block!important;
+  object-fit:contain!important;
+  filter:drop-shadow(0 4px 4px rgba(0,0,0,.72))!important;
+}
+
+.shop-preview.board-shipwreck{
+  background:linear-gradient(rgba(1,31,33,.10),rgba(1,14,18,.44)),url('/images/board-skins/shipwreck-cavern.png') center/cover!important;
+}
+
+@media(max-width:1200px){
+  .site-shell.game-route .game-page .board-obstacle-sprite{
+    width:122%!important;
+    height:122%!important;
+  }
+  .site-shell.game-route .game-page.board-volcano .board-obstacle-sprite,
+  .site-shell.game-route .game-page.board-default .board-obstacle-sprite{
+    width:140%!important;
+    height:140%!important;
+  }
+  .site-shell.game-route .treasure-column.compact .board-treasure-sprite{
+    width:25px!important;
+    height:25px!important;
+    max-width:25px!important;
+    max-height:25px!important;
+  }
 }
 
 /* v56: avatar actions render in a viewport-level modal, outside clipped HUDs. */

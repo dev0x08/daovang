@@ -10,6 +10,7 @@ service cloud.firestore {
         && data.hostId is string
         && data.status in ['waiting','started']
         && data.visibility in ['public','private']
+        && (!data.keys().hasAny(['mapSkin']) || data.mapSkin in ['board-volcano','board-ice','board-shipwreck'])
         && data.maxPlayers is int && data.maxPlayers >= 6 && data.maxPlayers <= 8
         && data.players is list && data.players.size() >= 1 && data.players.size() <= data.maxPlayers;
     }
