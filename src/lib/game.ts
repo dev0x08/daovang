@@ -6,7 +6,7 @@ export type SpecialKind = 'block'|'revive'|'swap';
 export type Card = { id:string; type:'path'|'action'; kind:PathKind|ActionKind; label:string; rotation:number };
 export type Cell = { card:Card; owner:string } | null;
 export type SpecialUses = Record<SpecialKind, boolean>;
-export type Player = { id:string; name:string; role:Role; isBot:boolean; avatar:string; hand:Card[]; score:number; blockedTurns:number; specialUsed:SpecialUses; canSabotage:boolean; sabotageUsed:boolean };
+export type Player = { id:string; name:string; role:Role; isBot:boolean; avatar:string; rank?:string; equipped?:Record<string,string|undefined>; hand:Card[]; score:number; blockedTurns:number; specialUsed:SpecialUses; canSabotage:boolean; sabotageUsed:boolean };
 export type MapSide = 'left'|'right'|'top'|'bottom';
 export type ExternalPoint = { side:MapSide; row?:number; col?:number };
 export type ObjectivePoint = ExternalPoint & { id:string; label:string };
@@ -74,9 +74,7 @@ export const isValidPlacement=(board:Cell[][],card:Card,row:number,col:number,ma
   const[dr,dc]=delta[d],nr=row+dr,nc=col+dc,opens=own.has(d);
 
   if(!inBoard(map,nr,nc)){
-   // Mép bản đồ được xem là vách đá: một nhánh đường có thể kết thúc tại đây.
-   // Chỉ cửa hầm mới tạo kết nối khởi đầu; các rương chỉ được mở khi mạng đường
-   // từ cửa hầm thật sự chạm đúng vị trí rương trong resolveTreasures().
+   if(opens&&!externalOpeningAllowed(map,row,col,d))return false;
    if(opens&&isEntranceCell&&d===entranceDirection)connectedToEntrance=true;
    continue;
   }
@@ -112,6 +110,7 @@ export const placementReason=(board:Cell[][],card:Card,row:number,col:number,map
  for(const d of ['U','R','D','L'] as Direction[]){
   const[dr,dc]=delta[d],nr=row+dr,nc=col+dc,opens=own.has(d);
   if(!inBoard(map,nr,nc)){
+   if(opens&&!externalOpeningAllowed(map,row,col,d))return `Cạnh ${d} đang hướng ra ngoài bản đồ.`;
    if(opens&&row===entranceRow&&col===entranceCol&&d===entranceDirection)connectedToEntrance=true;
    continue;
   }
@@ -136,10 +135,10 @@ const playerBase=(id:string,name:string,role:Role,isBot:boolean,avatar:string,ha
 const randomIndex=(length:number)=>{if(length<=1)return 0;if(typeof crypto!=='undefined'&&'getRandomValues' in crypto){const values=new Uint32Array(1),limit=Math.floor(0x100000000/length)*length;do crypto.getRandomValues(values);while(values[0]>=limit);return values[0]%length}return Math.floor(Math.random()*length)};
 export const createTreasures=(map:MapConfig):Treasure[]=>{const goldIndex=randomIndex(map.objectives.length);return map.objectives.map((o,i)=>({id:o.id,revealed:false,isGold:i===goldIndex,peekedBy:[]}))};
 export const newGame=(humanName='Bạn',botCount=5,map=GOLD_MINE_MAP):GameState=>{const total=Math.max(6,Math.min(8,botCount+1)),actualBots=total-1,deck=createDeck(),names=['Digger Bot','Luna','Búa Sắt','Mắt Đỏ','Râu Vàng','Đá Xám','Mỏ Neo'],roles=shuffle([...Array(total-2).fill('miner'),...Array(2).fill('wolf')]) as Role[];const wolfIndexes=roles.map((r,i)=>r==='wolf'?i:-1).filter(i=>i>=0);const saboteurIndex=wolfIndexes[Math.floor(Math.random()*wolfIndexes.length)];const players=[playerBase('human',humanName,roles[0],false,'human',draw(deck,6),saboteurIndex===0),...Array.from({length:actualBots},(_,i)=>playerBase(`bot-${i}`,names[i]||`AI ${i+1}`,roles[i+1],true,`bot-${i}`,draw(deck,6),saboteurIndex===i+1))];const firstTurn=Math.floor(Math.random()*players.length);return{matchId:`match-${Date.now()}-${uid()}`,map,board:Array.from({length:map.rows},()=>Array<Cell>(map.cols).fill(null)),obstacles:generateObstacles(map),players,treasures:createTreasures(map),deck,discardPile:[],turn:firstTurn,logs:[`Người đi đầu tiên: ${players[firstTurn].name}.`,'Trận đấu đã bắt đầu.'],winner:null,turns:0}};
-export const newRoomGame=(roomId:string,roomPlayers:Array<{uid:string;name:string;avatar?:string;bot?:boolean}>,map=GOLD_MINE_MAP):GameState=>{
+export const newRoomGame=(roomId:string,roomPlayers:Array<{uid:string;name:string;avatar?:string;bot?:boolean;rank?:string;equipped?:Record<string,string|undefined>}>,map=GOLD_MINE_MAP):GameState=>{
  const base=newGame(roomPlayers[0]?.name||'Bạn',Math.max(5,roomPlayers.length-1),map);
  base.matchId=`room-${roomId}`;
- base.players=base.players.slice(0,roomPlayers.length).map((player,index)=>({...player,id:roomPlayers[index].uid,name:roomPlayers[index].name,isBot:Boolean(roomPlayers[index].bot),avatar:roomPlayers[index].avatar||roomPlayers[index].uid}));
+ base.players=base.players.slice(0,roomPlayers.length).map((player,index)=>({...player,id:roomPlayers[index].uid,name:roomPlayers[index].name,isBot:Boolean(roomPlayers[index].bot),avatar:roomPlayers[index].avatar||roomPlayers[index].uid,rank:roomPlayers[index].rank,equipped:roomPlayers[index].equipped}));
  base.logs=[`Người đi đầu tiên: ${base.players[base.turn].name}.`,'Trận đấu đã bắt đầu.'];
  return base;
 };
@@ -152,7 +151,7 @@ const allEdgesValid=(board:Cell[][],map:MapConfig,row:number,col:number)=>{
  const own=new Set(dirs(cell.card.kind as PathKind,cell.card.rotation));
  for(const d of ['U','R','D','L'] as Direction[]){const[dr,dc]=delta[d],nr=row+dr,nc=col+dc,opens=own.has(d);
   if(!inBoard(map,nr,nc)){
-   // Nhánh hướng ra mép bàn chỉ kết thúc tại vách đá, không làm mảnh mất hợp lệ.
+   if(opens&&!externalOpeningAllowed(map,row,col,d))return false;
    continue;
   }
   const n=board[nr][nc];if(!n?.card)continue;

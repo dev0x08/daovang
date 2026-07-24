@@ -12,6 +12,7 @@ import {
   ShoppingBag,
   Trophy,
   UserRound,
+  Users,
   X,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -68,12 +69,12 @@ export default function Layout() {
                 <div className="user-menu" ref={dropdownRef}>
                   <button
                     type="button"
-                    className={`user-menu-trigger ${userOpen ? 'is-open' : ''}`}
+                    className={`user-menu-trigger ${userOpen ? 'is-open' : ''} ${cosmeticClass(profile.equipped.nameplate)}`}
                     onClick={() => setUserOpen(value => !value)}
                     aria-haspopup="menu"
                     aria-expanded={userOpen}
                   >
-                    <span className="avatar">
+                    <span className={`avatar ${cosmeticClass(profile.equipped.frame)}`}>
                       {profile.photoURL ? <img src={profile.photoURL} alt="" /> : <UserRound size={18} />}
                     </span>
                     <span className="user-menu-copy">
@@ -85,14 +86,15 @@ export default function Layout() {
 
                   {userOpen && (
                     <div className="user-dropdown" role="menu">
-                      <div className="user-dropdown-head">
-                        <span className="avatar large-menu-avatar">
+                      <div className={`user-dropdown-head ${cosmeticClass(profile.equipped.nameplate)}`}>
+                        <span className={`avatar large-menu-avatar ${cosmeticClass(profile.equipped.frame)}`}>
                           {profile.photoURL ? <img src={profile.photoURL} alt="" /> : <UserRound size={21} />}
                         </span>
                         <span><b className={cosmeticClass(profile.equipped.nameColor)}>{profile.displayName}</b><small>{profile.rank}</small></span>
                       </div>
                       <div className="user-dropdown-links">
                         <Link to="/profile" role="menuitem"><UserRound size={17} /><span><b>Hồ sơ</b><small>Thông tin và thành tích</small></span></Link>
+                        <Link to="/friends" role="menuitem"><Users size={17} /><span><b>Bạn bè</b><small>Kết bạn và lời mời phòng</small></span></Link>
                         <Link to="/missions" role="menuitem"><Gift size={17} /><span><b>Nhiệm vụ</b><small>Nhận thưởng mỗi ngày</small></span></Link>
                         <Link to="/history" role="menuitem"><History size={17} /><span><b>Lịch sử</b><small>Xem lại các trận đấu</small></span></Link>
                       </div>

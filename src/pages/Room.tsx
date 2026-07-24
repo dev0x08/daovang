@@ -30,6 +30,7 @@ import {
   ShieldCheck,
   UserRound,
   UserX,
+  UserPlus,
   Users,
   X,
 } from 'lucide-react';
@@ -40,6 +41,7 @@ import ChatPanel from '../components/ChatPanel';
 import { db } from '../lib/firebase';
 import { GOLD_MINE_MAP, newRoomGame } from '../lib/game';
 import { createPresence, encodeOnlineMatch, TURN_MS } from '../lib/onlineMatch';
+import { dismissRoomInvite, FriendSummary, inviteFriendToRoom, watchFriends } from '../lib/friends';
 
 type Player = {
   uid: string;
@@ -82,6 +84,7 @@ export default function Room() {
   const { profile } = useAuth();
   const [params] = useSearchParams();
   const createLock = useRef(false);
+  const inviteHandled = useRef(false);
 
   const [room, setRoom] = useState<Room | null>(null);
   const [waitingRooms, setWaitingRooms] = useState<Room[]>([]);
@@ -97,6 +100,9 @@ export default function Room() {
   const [pendingRoom, setPendingRoom] = useState<Room | null>(null);
   const [creating, setCreating] = useState(false);
   const [showMatchSettings, setShowMatchSettings] = useState(false);
+  const [showFriendInvite, setShowFriendInvite] = useState(false);
+  const [friends, setFriends] = useState<FriendSummary[]>([]);
+  const [invitedFriends, setInvitedFriends] = useState<string[]>([]);
 
   useEffect(() => {
     if (profile && !roomName) setRoomName(`Phòng của ${profile.displayName}`);
@@ -105,6 +111,7 @@ export default function Room() {
   useEffect(()=>{if(!profile||!db||room)return;const roomId=localStorage.getItem(`active-room:${profile.uid}`);if(!roomId)return;let cancelled=false;(async()=>{try{const snap=await getDoc(doc(db!,'rooms',roomId));if(!snap.exists()){localStorage.removeItem(`active-room:${profile.uid}`);return}const restored={id:snap.id,...snap.data()} as Room;if(restored.players.some(player=>player.uid===profile.uid)&&!cancelled)setRoom(restored);else localStorage.removeItem(`active-room:${profile.uid}`)}catch{}})();return()=>{cancelled=true}},[profile?.uid,room]);
 
   useEffect(()=>{if(profile&&room)localStorage.setItem(`active-room:${profile.uid}`,room.id)},[profile?.uid,room?.id]);
+  useEffect(()=>profile?watchFriends(profile.uid,setFriends):undefined,[profile?.uid]);
 
   useEffect(()=>{if(!profile||!room||!db)return;const member=room.players.find(player=>player.uid===profile.uid);if(!member||JSON.stringify(member.equipped||{})===JSON.stringify(profile.equipped||{}))return;const ref=doc(db,'rooms',room.id);void runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())return;const current={id:snap.id,...snap.data()} as Room;const players=current.players.map(player=>player.uid===profile.uid?{...player,name:profile.displayName,avatar:profile.photoURL,rank:profile.rank,equipped:profile.equipped}:player);tx.update(ref,{players})})},[profile?.uid,profile?.displayName,profile?.photoURL,profile?.rank,profile?.equipped,room?.id,room?.players]);
 
@@ -209,10 +216,10 @@ export default function Room() {
     }
   };
 
-  const enterRoom = async (target: Room, password = '') => {
+  const enterRoom = async (target: Room, password = '', invited = false) => {
     setError('');
     if (!profile || !db) return;
-    if (target.visibility === 'private') {
+    if (target.visibility === 'private'&&!invited) {
       const suppliedHash = await hashPassword(password.trim());
       if (!password.trim() || suppliedHash !== target.passwordHash) {
         setError('Mật khẩu phòng không đúng.');
@@ -292,6 +299,8 @@ export default function Room() {
     if(room.players.length>maxPlayers||highestSlot>=maxPlayers){setError(`Không thể giảm xuống ${maxPlayers} khi vẫn có người ở vị trí cao hơn.`);return}
     try{await updateDoc(doc(db,'rooms',room.id),{maxPlayers});setError('')}catch{setError('Không thể đổi số người chơi. Hãy cập nhật Firebase Rules.')}
   };
+
+  useEffect(()=>{const inviteId=params.get('invite');if(!inviteId||!profile||!db||room||inviteHandled.current)return;inviteHandled.current=true;void(async()=>{try{const inviteSnap=await getDoc(doc(db!,'users',profile.uid,'roomInvites',inviteId));if(!inviteSnap.exists())throw new Error('Lời mời không còn hiệu lực.');const invite=inviteSnap.data() as {roomId?:string};const roomSnap=await getDoc(doc(db!,'rooms',String(invite.roomId||inviteId)));if(!roomSnap.exists())throw new Error('Phòng không còn tồn tại.');await enterRoom({id:roomSnap.id,...roomSnap.data()} as Room,'',true);await dismissRoomInvite(profile.uid,roomSnap.id)}catch(error){setError(error instanceof Error?error.message:'Không thể tham gia phòng từ lời mời.')}finally{window.history.replaceState({},'',window.location.pathname)}})()},[params,profile?.uid,room?.id]);
 
   const changeMapSkin=async(mapSkin:NonNullable<Room['mapSkin']>)=>{
     if(!room||!db||profile?.uid!==room.hostId)return;
@@ -586,6 +595,9 @@ export default function Room() {
           <button className="btn btn-ghost btn-small" onClick={() => navigator.clipboard.writeText(room.code)}>
             <Copy /> Sao chép
           </button>
+          <button className="btn btn-ghost btn-small" onClick={()=>setShowFriendInvite(true)}>
+            <UserPlus/> Mời bạn
+          </button>
           <button className="btn btn-danger btn-small" onClick={() => void leaveRoom()}>
             <DoorOpen /> Rời phòng
           </button>
@@ -603,7 +615,7 @@ export default function Room() {
                 <PlayerIdentity
                   player={player}
                   subtitle={player.uid === room.hostId ? 'CHỦ PHÒNG' : player.bot ? 'AI' : 'NGƯỜI CHƠI'}
-                  trailing={<><em>{player.ready ? 'SẴN SÀNG' : 'ĐANG CHỜ'}</em>{isHost&&player.uid!==room.hostId&&<button className="kick-player-button" title={`Kích ${player.name}`} onClick={()=>void kickPlayer(player.uid)}><UserX/><span>KÍCH</span></button>}</>}
+                  trailing={<><em>{player.ready ? 'SẴN SÀNG' : 'ĐANG CHỜ'}</em>{!player.bot&&<a className="profile-view-button" href={`/profile/${player.uid}`} target="_blank" rel="noreferrer">HỒ SƠ</a>}{isHost&&player.uid!==room.hostId&&<button className="kick-player-button" title={`Kích ${player.name}`} onClick={()=>void kickPlayer(player.uid)}><UserX/><span>KÍCH</span></button>}</>}
                 />
               </div>
             ) : <div className="empty-slot" key={index}>VỊ TRÍ TRỐNG</div>;
@@ -627,6 +639,7 @@ export default function Room() {
         <div className="room-side-stack"><div className="panel lobby-chat-card"><ChatPanel roomId={room.id}/></div></div>
       </div>
       {showMatchSettings&&<div className="room-modal-backdrop" onMouseDown={()=>setShowMatchSettings(false)}><div className="room-modal match-settings-modal" onMouseDown={event=>event.stopPropagation()}><button className="room-modal-close" onClick={()=>setShowMatchSettings(false)}><X /></button><div className="room-modal-icon"><Settings /></div><span>PHÒNG CHỜ</span><h2>THIẾT LẬP TRẬN</h2><div className="setting-row"><span>Loại phòng</span><b>{room.mode==='ai'?'CHƠI VỚI AI':room.visibility==='public'?'CÔNG KHAI':'RIÊNG TƯ'}</b></div><div className="setting-row match-map-picker"><span>Bản đồ</span>{isHost?<select value={room.mapSkin||'board-volcano'} onChange={event=>void changeMapSkin(event.target.value as NonNullable<Room['mapSkin']>)}><option value="board-volcano">Hầm Mỏ</option><option value="board-ice">Hang Băng</option><option value="board-shipwreck">Tàu Đắm</option></select>:<b>{room.mapSkin==='board-ice'?'HANG BĂNG':room.mapSkin==='board-shipwreck'?'TÀU ĐẮM':'HẦM MỎ'}</b>}</div><div className="setting-row match-player-limit"><span>Người chơi</span>{isHost?<select value={room.maxPlayers} onChange={event=>void changeMaxPlayers(Number(event.target.value))}>{[6,7,8].map(value=><option key={value} value={value} disabled={value<room.players.length}>{value} người</option>)}</select>:<b>{room.maxPlayers} người</b>}</div><div className="setting-row"><span>Vai trò</span><b>BÍ MẬT</b></div><button className="btn btn-primary btn-wide" onClick={()=>setShowMatchSettings(false)}>XONG</button></div></div>}
+      {showFriendInvite&&<div className="room-modal-backdrop" onMouseDown={()=>setShowFriendInvite(false)}><div className="room-modal friend-invite-modal" onMouseDown={event=>event.stopPropagation()}><button className="room-modal-close" onClick={()=>setShowFriendInvite(false)}><X/></button><div className="room-modal-icon"><UserPlus/></div><span>PHÒNG #{room.code}</span><h2>MỜI BẠN BÈ</h2>{friends.length?<div className="friend-invite-options">{friends.map(friend=>{const joined=room.players.some(player=>player.uid===friend.uid),sent=invitedFriends.includes(friend.uid);return <div key={friend.uid}><PlayerIdentity compact player={{name:friend.displayName,photoURL:friend.photoURL,rank:friend.rank}}/><button className="btn btn-small btn-primary" disabled={joined||sent} onClick={()=>void inviteFriendToRoom(profile,friend.uid,room).then(()=>setInvitedFriends(current=>[...current,friend.uid])).catch(()=>setError('Không thể gửi lời mời phòng.'))}>{joined?'ĐÃ VÀO PHÒNG':sent?'ĐÃ MỜI':'MỜI'}</button></div>})}</div>:<div className="profile-empty"><Users/><b>Chưa có bạn bè</b><span>Hãy kết bạn trước khi mời người khác vào phòng.</span></div>}</div></div>}
     </section>
   );
 }
