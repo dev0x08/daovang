@@ -2382,6 +2382,59 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
   text-shadow:0 0 8px rgba(255,70,60,.65)!important;
 }
 
+/* v63 — illustrated mine obstacles and hidden treasure */
+.game-page.board-default .obstacle-art.cliff,
+.game-page.board-volcano .obstacle-art.cliff{
+  width:100%!important;
+  height:100%!important;
+  padding:3px!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:visible!important;
+}
+
+.game-page.board-default .mine-rock-sprite,
+.game-page.board-volcano .mine-rock-sprite{
+  width:84%!important;
+  height:84%!important;
+  max-width:72px!important;
+  max-height:72px!important;
+  display:block!important;
+  object-fit:contain!important;
+  filter:drop-shadow(0 5px 5px rgba(24,10,2,.62))!important;
+}
+
+.treasure-column.compact .treasure-slot:not(.revealed):not(.peeked)>span{
+  display:grid!important;
+  place-items:center!important;
+  overflow:visible!important;
+}
+
+.treasure-column.compact .treasure-chest-sprite{
+  width:88%!important;
+  height:88%!important;
+  max-width:54px!important;
+  max-height:54px!important;
+  display:block!important;
+  object-fit:contain!important;
+  filter:drop-shadow(0 4px 4px rgba(0,0,0,.72))!important;
+}
+
+@media(max-width:1200px){
+  .site-shell.game-route .game-page.board-default .mine-rock-sprite,
+  .site-shell.game-route .game-page.board-volcano .mine-rock-sprite{
+    width:88%!important;
+    height:88%!important;
+  }
+
+  .site-shell.game-route .treasure-column.compact .treasure-chest-sprite{
+    width:25px!important;
+    height:25px!important;
+    max-width:25px!important;
+    max-height:25px!important;
+  }
+}
+
 /* v45: authoritative mobile game layouts. Keep overflow inside the board, never on the page. */
 @media(max-width:1000px){
   html,body,#root,.site-shell{width:100%;max-width:100%;overflow-x:hidden!important}
