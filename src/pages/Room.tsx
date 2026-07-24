@@ -39,7 +39,7 @@ import PlayerIdentity from '../components/PlayerIdentity';
 import ChatPanel from '../components/ChatPanel';
 import { db } from '../lib/firebase';
 import { GOLD_MINE_MAP, newRoomGame } from '../lib/game';
-import { createPresence, TURN_MS } from '../lib/onlineMatch';
+import { createPresence, encodeOnlineMatch, TURN_MS } from '../lib/onlineMatch';
 
 type Player = {
   uid: string;
@@ -327,7 +327,7 @@ export default function Room() {
         const now=Date.now();
         const gameState=newRoomGame(current.id,current.players,GOLD_MINE_MAP);
         const participantIds=current.players.filter(player=>!player.bot).map(player=>player.uid);
-        tx.set(doc(db!,'matches',current.id),{roomId:current.id,participantIds,state:gameState,presence:createPresence(participantIds,now),turnStartedAt:now,turnDeadline:now+TURN_MS,revision:0});
+        tx.set(doc(db!,'matches',current.id),encodeOnlineMatch({roomId:current.id,participantIds,state:gameState,presence:createPresence(participantIds,now),turnStartedAt:now,turnDeadline:now+TURN_MS,revision:0}));
         tx.update(ref,{status:'started',startedAt:serverTimestamp()});return current.players.length;
       });
       window.location.assign(`/game?mode=room&room=${encodeURIComponent(room.id)}&players=${count}`);

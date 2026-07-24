@@ -11,11 +11,20 @@ export type OnlineMatch={
  turnDeadline:number;
  revision:number;
 };
+export type OnlineMatchDocument=Omit<OnlineMatch,'state'>&{stateJson:string};
 
 export const TURN_MS=10_000;
 export const RECONNECT_MS=60_000;
 
 export const createPresence=(ids:string[],now=Date.now()):MatchPresence=>Object.fromEntries(ids.map(id=>[id,{status:'online',lastSeen:now,disconnectDeadline:null}]));
+export const encodeOnlineMatch=(match:OnlineMatch):OnlineMatchDocument=>{
+ const{state,...rest}=match;
+ return{...rest,stateJson:JSON.stringify(state)};
+};
+export const decodeOnlineMatch=(data:OnlineMatchDocument):OnlineMatch=>{
+ const{stateJson,...rest}=data;
+ return{...rest,state:JSON.parse(stateJson) as GameState};
+};
 
 const nextActiveTurn=(match:OnlineMatch,from:number)=>{
  const total=match.state.players.length;
