@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import { BadgeCheck, Coins, Frame, Gem, Palette, PanelTop, ShoppingBag, Tag, Snowflake, Flame, Sparkles, Shield, Compass, Crown, Paintbrush } from 'lucide-react';
+import { BadgeCheck, Coins, Frame, Gem, Palette, PanelTop, ShoppingBag, Tag, Snowflake, Pickaxe, Sparkles, Shield, Compass, Crown, Paintbrush } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { SHOP_ITEMS } from '../lib/shop';
 import GameEmblem from '../components/GameEmblem';
 const icons={frame:Frame,nameColor:Palette,nameplate:PanelTop,title:Tag,badge:BadgeCheck,boardSkin:PanelTop,pieceSkin:Gem};
 const categoryName={frame:'KHUNG HỒ SƠ',nameColor:'MÀU TÊN',nameplate:'NỀN BẢNG TÊN',title:'DANH HIỆU',badge:'HUY HIỆU',boardSkin:'SKIN BÀN CỜ',pieceSkin:'SKIN QUÂN CỜ'};
-const previewIcon=(id:string)=>id==='board-ice'?Snowflake:id==='board-volcano'?Flame:id==='piece-gold'?Crown:id==='piece-crystal'?Gem:id.includes('wolf')?Shield:id.includes('compass')?Compass:id.includes('emerald')?Sparkles:id.includes('amber')?Paintbrush:icons.frame;
+const previewIcon=(id:string)=>id==='board-ice'?Snowflake:id==='board-volcano'?Pickaxe:id==='piece-gold'?Crown:id==='piece-crystal'?Gem:id.includes('wolf')?Shield:id.includes('compass')?Compass:id.includes('emerald')?Sparkles:id.includes('amber')?Paintbrush:icons.frame;
 const tone=(id:string):'gold'|'ice'|'fire'|'emerald'|'red'|'violet'=>id.includes('ice')||id.includes('ocean')||id.includes('crystal')?'ice':id.includes('volcano')||id.includes('wolf')||id.includes('crimson')?'fire':id.includes('emerald')?'emerald':id.includes('shadow')?'violet':'gold';
 export default function Shop(){
  const{profile,buyItem,equipItem}=useAuth();const[msg,setMsg]=useState('');const[filter,setFilter]=useState<'all'|'boardSkin'|'pieceSkin'|'profile'>('all');
