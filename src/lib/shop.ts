@@ -1,6 +1,7 @@
 export type ShopCategory='frame'|'nameColor'|'nameplate'|'title'|'badge'|'boardSkin'|'pieceSkin';
-export type ShopItem={id:string;name:string;description:string;category:ShopCategory;price:number;preview:string};
+export type ShopItem={id:string;name:string;description:string;category:ShopCategory;price:number;preview:string;defaultOwned?:boolean};
 export const SHOP_ITEMS:ShopItem[]=[
+ {id:'board-default',name:'Bàn Mặc Định',description:'Bàn hang đá nguyên bản dành cho mọi thợ mỏ.',category:'boardSkin',price:0,preview:'▦',defaultOwned:true},
  {id:'board-ice',name:'Hang Băng',description:'Biến bàn cờ thành hang băng cổ đại với tinh thể xanh phát sáng.',category:'boardSkin',price:900,preview:'❄'},
  {id:'board-volcano',name:'Hầm Mỏ',description:'Không gian hầm mỏ đá tối, khung gỗ cũ và ánh đèn vàng bí ẩn.',category:'boardSkin',price:1100,preview:'⛏'},
  {id:'board-shipwreck',name:'Tàu Đắm',description:'Khám phá đáy biển giữa xác tàu cổ, gỗ mục và kho báu hoàng kim.',category:'boardSkin',price:1250,preview:'⚓'},
@@ -15,6 +16,10 @@ export const SHOP_ITEMS:ShopItem[]=[
  {id:'plate-royal',name:'Nền Hoàng Kim',description:'Nền bảng tên vàng sang trọng.',category:'nameplate',price:850,preview:'▰'},
  {id:'title-prospector',name:'Nhà Thám Khoáng',description:'Danh hiệu hiển thị dưới tên.',category:'title',price:500,preview:'T'},
  {id:'title-shadow',name:'Bóng Trong Hầm',description:'Danh hiệu bí ẩn cho hồ sơ.',category:'title',price:650,preview:'T'},
+ {id:'title-blood-wolf',name:'Huyết Lang',description:'Danh hiệu đỏ rực dành cho kẻ săn mồi trong bóng tối.',category:'title',price:800,preview:'T'},
+ {id:'title-frost-vein',name:'Băng Mạch',description:'Danh hiệu xanh băng chuyển động như mạch khoáng cổ.',category:'title',price:900,preview:'T'},
+ {id:'title-prism-seeker',name:'Kẻ Săn Lăng Kính',description:'Danh hiệu cầu vồng hiếm dành cho nhà thám hiểm.',category:'title',price:1100,preview:'T'},
+ {id:'title-abyss',name:'Chúa Tể Vực Sâu',description:'Danh hiệu bóng tối với ánh bạc ẩn hiện.',category:'title',price:1250,preview:'T'},
  {id:'badge-compass',name:'Huy hiệu La Bàn',description:'Huy hiệu trang trí hồ sơ.',category:'badge',price:300,preview:'✦'},
  {id:'badge-gem',name:'Huy hiệu Đá Quý',description:'Huy hiệu đá quý hiếm.',category:'badge',price:550,preview:'♦'},
 ];

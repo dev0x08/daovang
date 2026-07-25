@@ -49,6 +49,7 @@ const draw=(deck:Card[],n:number)=>deck.splice(0,Math.min(n,deck.length));
 export const dirs=(kind:PathKind,rotation=0):Direction[]=>{const base:Record<PathKind,Direction[]>={h:['L','R'],v:['U','D'],ne:['D','L'],nw:['D','R'],se:['U','L'],sw:['U','R'],tUp:['L','R','U'],tDown:['L','R','D'],tLeft:['U','D','L'],tRight:['U','D','R'],cross:['U','R','D','L'],crossDead:['U','R','D','L'],nwDead:['D'],seDead:['U'],swDead:['U'],collapse:['L']};const turns=((rotation%360)+360)%360/90;const order:Direction[]=['U','R','D','L'];return base[kind].map(d=>order[(order.indexOf(d)+turns)%4])};
 export const isDeadPath=(kind:PathKind)=>kind==='crossDead'||kind==='nwDead'||kind==='seDead'||kind==='swDead'||kind==='collapse';
 const opposite:Record<Direction,Direction>={L:'R',R:'L',U:'D',D:'U'};
+const directionName:Record<Direction,string>={L:'trái',R:'phải',U:'trên',D:'dưới'};
 const delta:Record<Direction,[number,number]>={L:[0,-1],R:[0,1],U:[-1,0],D:[1,0]};
 const inBoard=(m:MapConfig,r:number,c:number)=>r>=0&&r<m.rows&&c>=0&&c<m.cols;
 const key=(r:number,c:number)=>`${r},${c}`;
@@ -110,7 +111,7 @@ export const placementReason=(board:Cell[][],card:Card,row:number,col:number,map
  for(const d of ['U','R','D','L'] as Direction[]){
   const[dr,dc]=delta[d],nr=row+dr,nc=col+dc,opens=own.has(d);
   if(!inBoard(map,nr,nc)){
-   if(opens&&!externalOpeningAllowed(map,row,col,d))return `Cạnh ${d} đang hướng ra ngoài bản đồ.`;
+   if(opens&&!externalOpeningAllowed(map,row,col,d))return `Cạnh ${directionName[d]} đang hướng ra ngoài bản đồ.`;
    if(opens&&row===entranceRow&&col===entranceCol&&d===entranceDirection)connectedToEntrance=true;
    continue;
   }
@@ -118,7 +119,7 @@ export const placementReason=(board:Cell[][],card:Card,row:number,col:number,map
   if(!neighbor?.card)continue;
   if(neighbor.card.type!=='path')return 'Ô kế bên không phải mảnh đường.';
   const neighborOpens=dirs(neighbor.card.kind as PathKind,neighbor.card.rotation).includes(opposite[d]);
-  if(opens!==neighborOpens)return `Cạnh ${d} không khớp với mảnh kế bên.`;
+  if(opens!==neighborOpens)return `Cạnh ${directionName[d]} không khớp với mảnh kế bên.`;
   if(opens&&neighborOpens)hasConnectedOpening=true;
  }
  if(!hasConnectedOpening&&!connectedToEntrance)return 'Mảnh phải nối bằng ít nhất một cửa mở với đường đã có.';

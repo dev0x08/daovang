@@ -3,14 +3,13 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
-    function roomMember(data) { return signedIn() && data.players is list && data.players.size() > 0 && data.players.hasAny([{'uid': request.auth.uid}]); }
     function validRoomShape(data) {
       return data.code is string && data.code.size() == 6
         && data.name is string && data.name.size() >= 3 && data.name.size() <= 40
         && data.hostId is string
         && data.status in ['waiting','started']
         && data.visibility in ['public','private']
-        && (!data.keys().hasAny(['mapSkin']) || data.mapSkin in ['board-volcano','board-ice','board-shipwreck'])
+        && (!data.keys().hasAny(['mapSkin']) || data.mapSkin in ['board-default','board-volcano','board-ice','board-shipwreck'])
         && data.maxPlayers is int && data.maxPlayers >= 6 && data.maxPlayers <= 8
         && data.players is list && data.players.size() >= 1 && data.players.size() <= data.maxPlayers;
     }
@@ -21,7 +20,7 @@ service cloud.firestore {
         && request.resource.data.uid == uid
         && request.resource.data.coins == 500
         && request.resource.data.exp == 0
-        && request.resource.data.rankPoints == 1000
+        && request.resource.data.rankPoints == 0
         && request.resource.data.wins == 0
         && request.resource.data.losses == 0
         && request.resource.data.gamesPlayed == 0;
@@ -125,7 +124,16 @@ service cloud.firestore {
       allow read: if signedIn();
       allow create: if signedIn() && validRoomShape(request.resource.data)
         && request.resource.data.hostId == request.auth.uid
-        && request.resource.data.players.size() == 1
+        && (
+          (request.resource.data.mode == 'online' && request.resource.data.players.size() == 1)
+          || (request.resource.data.mode == 'ai'
+              && request.resource.data.players.size() == 6
+              && request.resource.data.players[1].bot == true
+              && request.resource.data.players[2].bot == true
+              && request.resource.data.players[3].bot == true
+              && request.resource.data.players[4].bot == true
+              && request.resource.data.players[5].bot == true)
+        )
         && request.resource.data.players[0].uid == request.auth.uid;
       allow update: if signedIn() && validRoomShape(request.resource.data)
         && request.resource.data.hostId == resource.data.hostId

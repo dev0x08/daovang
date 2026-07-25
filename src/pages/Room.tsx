@@ -54,6 +54,19 @@ type Player = {
   slot?: number;
 };
 
+const botCosmetics=(seed:string):Equipped=>{
+  const variant=Math.abs([...seed].reduce((value,char)=>(value*31+char.charCodeAt(0))|0,7))%7+1;
+  return{nameColor:`bot-name-${variant}`,badge:`bot-badge-${variant}`,nameplate:`bot-ai-${variant}`};
+};
+const createBot=(slot:number):Player=>{
+  const uid=`bot-${crypto.randomUUID()}`;
+  return{uid,name:`AI Thợ Mỏ ${slot}`,avatar:'',bot:true,ready:true,slot,equipped:botCosmetics(uid)};
+};
+const normalizeRoomPlayer=(player:Player,index:number):Player=>{
+  const slot=player.slot??index;
+  return{...player,slot,name:player.bot?`AI Thợ Mỏ ${slot}`:player.name,equipped:player.bot?(player.equipped||botCosmetics(player.uid)):player.equipped};
+};
+
 type Room = {
   id: string;
   code: string;
@@ -66,7 +79,7 @@ type Room = {
   maxPlayers: number;
   players: Player[];
   mode?: 'online' | 'ai';
-  mapSkin?: 'board-volcano' | 'board-ice' | 'board-shipwreck';
+  mapSkin?: 'board-default' | 'board-volcano' | 'board-ice' | 'board-shipwreck';
 };
 
 const ROOM_CODE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -114,6 +127,7 @@ export default function Room() {
   useEffect(()=>profile?watchFriends(profile.uid,setFriends):undefined,[profile?.uid]);
 
   useEffect(()=>{if(!profile||!room||!db)return;const member=room.players.find(player=>player.uid===profile.uid);if(!member||JSON.stringify(member.equipped||{})===JSON.stringify(profile.equipped||{}))return;const ref=doc(db,'rooms',room.id);void runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())return;const current={id:snap.id,...snap.data()} as Room;const players=current.players.map(player=>player.uid===profile.uid?{...player,name:profile.displayName,avatar:profile.photoURL,rank:profile.rank,equipped:profile.equipped}:player);tx.update(ref,{players})})},[profile?.uid,profile?.displayName,profile?.photoURL,profile?.rank,profile?.equipped,room?.id,room?.players]);
+  useEffect(()=>{if(!profile||!room||!db||room.hostId!==profile.uid||!room.players.some(player=>player.bot&&!player.equipped))return;const ref=doc(db,'rooms',room.id);void runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())return;const current={id:snap.id,...snap.data()} as Room;tx.update(ref,{players:current.players.map(normalizeRoomPlayer)})})},[profile?.uid,room?.id,room?.hostId,room?.players]);
 
   useEffect(()=>{if(room?.status==='started')window.location.assign(`/game?mode=room&room=${encodeURIComponent(room.id)}&players=${room.players.length}`)},[room?.status,room?.id]);
 
@@ -186,7 +200,8 @@ export default function Room() {
       const effectiveVisibility = roomMode === 'ai' ? 'private' : visibility;
       const passwordHash = roomMode === 'online' && visibility === 'private' ? await hashPassword(createPassword.trim()) : '';
       const hostPlayer:Player={uid:profile.uid,name:profile.displayName,avatar:profile.photoURL,ready:true,rank:profile.rank,equipped:profile.equipped,slot:0};
-      const aiPlayers:Player[]=roomMode==='ai'?Array.from({length:5},(_,index)=>({uid:`bot-${crypto.randomUUID()}`,name:`AI Thợ Mỏ ${index+1}`,avatar:'',bot:true,ready:true,slot:index+1})):[];
+      const aiPlayers:Player[]=roomMode==='ai'?Array.from({length:5},(_,index)=>createBot(index+1)):[];
+      const finalPlayers=roomMode==='ai'?[hostPlayer,...aiPlayers]:[hostPlayer];
       const data = {
         code: makeCode(),
         name: safeRoomName,
@@ -197,19 +212,18 @@ export default function Room() {
         mode: roomMode,
         passwordHash,
         maxPlayers: 6,
-        mapSkin: 'board-volcano' as const,
-        players: [hostPlayer],
+        mapSkin: (profile.equipped.boardSkin||'board-default') as NonNullable<Room['mapSkin']>,
+        players: finalPlayers,
         createdAt: serverTimestamp(),
       };
       const reference = await addDoc(collection(db, 'rooms'), data);
-      const finalPlayers=roomMode==='ai'?[hostPlayer,...aiPlayers]:[hostPlayer];
-      if(roomMode==='ai')await updateDoc(reference,{players:finalPlayers});
       localStorage.setItem(`active-room:${profile.uid}`,reference.id);
       setRoom({ id: reference.id, ...data, players:finalPlayers } as Room);
       setShowCreate(false);
       setCreatePassword('');
-    } catch {
-      setError('Không thể tạo phòng. Hãy kiểm tra Firebase Rules và thử lại.');
+    } catch (error) {
+      const code=typeof error==='object'&&error&&'code' in error?String(error.code):'';
+      setError(code.includes('permission-denied')?'Firebase Rules đang từ chối tạo phòng. Vui lòng deploy rules mới.':`Không thể tạo phòng${code?` (${code})`:''}. Vui lòng thử lại.`);
     } finally {
       setCreating(false);
       createLock.current=false;
@@ -235,7 +249,7 @@ export default function Room() {
         if(current.players.some(p=>p.uid===profile.uid)) return current;
         if(current.status!=='waiting') throw new Error('Phòng đã bắt đầu.');
         if(current.players.length>=current.maxPlayers) throw new Error('Phòng đã đủ người.');
-        const normalized=current.players.map((player,index)=>{const slot=player.slot??index;return {...player,slot,name:player.bot?`AI Thợ Mỏ ${slot}`:player.name}});
+        const normalized=current.players.map(normalizeRoomPlayer);
         const usedSlots=new Set(normalized.map(player=>player.slot));
         const slot=Array.from({length:current.maxPlayers},(_,index)=>index).find(index=>!usedSlots.has(index));
         if(slot===undefined)throw new Error('Phòng đã đủ người.');
@@ -284,11 +298,11 @@ export default function Room() {
       const snap=await tx.get(ref);if(!snap.exists())return;
       const current={id:snap.id,...snap.data()} as Room;
       if(current.hostId!==profile.uid||current.status!=='waiting'||current.players.length>=current.maxPlayers)return;
-      const normalized=current.players.map((player,index)=>{const slot=player.slot??index;return {...player,slot,name:player.bot?`AI Thợ Mỏ ${slot}`:player.name}});
+      const normalized=current.players.map(normalizeRoomPlayer);
       const usedSlots=new Set(normalized.map(player=>player.slot));
       const slot=Array.from({length:current.maxPlayers},(_,index)=>index).find(index=>!usedSlots.has(index));
       if(slot===undefined)return;
-      const players=[...normalized,{uid:`bot-${crypto.randomUUID()}`,name:`AI Thợ Mỏ ${slot}`,avatar:'',bot:true,ready:true,slot}];
+      const players=[...normalized,createBot(slot)];
       tx.update(ref,{players});
     });
   };
@@ -302,16 +316,11 @@ export default function Room() {
 
   useEffect(()=>{const inviteId=params.get('invite');if(!inviteId||!profile||!db||room||inviteHandled.current)return;inviteHandled.current=true;void(async()=>{try{const inviteSnap=await getDoc(doc(db!,'users',profile.uid,'roomInvites',inviteId));if(!inviteSnap.exists())throw new Error('Lời mời không còn hiệu lực.');const invite=inviteSnap.data() as {roomId?:string};const roomSnap=await getDoc(doc(db!,'rooms',String(invite.roomId||inviteId)));if(!roomSnap.exists())throw new Error('Phòng không còn tồn tại.');await enterRoom({id:roomSnap.id,...roomSnap.data()} as Room,'',true);await dismissRoomInvite(profile.uid,roomSnap.id)}catch(error){setError(error instanceof Error?error.message:'Không thể tham gia phòng từ lời mời.')}finally{window.history.replaceState({},'',window.location.pathname)}})()},[params,profile?.uid,room?.id]);
 
-  const changeMapSkin=async(mapSkin:NonNullable<Room['mapSkin']>)=>{
-    if(!room||!db||profile?.uid!==room.hostId)return;
-    try{await updateDoc(doc(db,'rooms',room.id),{mapSkin});setError('')}catch{setError('Không thể đổi bản đồ. Hãy cập nhật Firebase Rules.')}
-  };
-
   const kickPlayer=async(targetUid:string)=>{
     if(!room||!db||profile?.uid!==room.hostId||targetUid===room.hostId)return;
     try{
       const ref=doc(db,'rooms',room.id);
-      await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())return;const current={id:snap.id,...snap.data()} as Room;if(current.hostId!==profile.uid||current.status!=='waiting')return;const players=current.players.map((player,index)=>{const slot=player.slot??index;return {...player,slot,name:player.bot?`AI Thợ Mỏ ${slot}`:player.name}}).filter(player=>player.uid!==targetUid);tx.update(ref,{players})});
+      await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())return;const current={id:snap.id,...snap.data()} as Room;if(current.hostId!==profile.uid||current.status!=='waiting')return;const players=current.players.map(normalizeRoomPlayer).filter(player=>player.uid!==targetUid);tx.update(ref,{players})});
       setError('');
     }catch{setError('Không thể kích người chơi khỏi phòng.')}
   };
@@ -343,7 +352,7 @@ export default function Room() {
         const now=Date.now();
         const gameState=newRoomGame(current.id,current.players,GOLD_MINE_MAP);
         const participantIds=current.players.filter(player=>!player.bot).map(player=>player.uid);
-        tx.set(doc(db!,'matches',current.id),encodeOnlineMatch({roomId:current.id,boardSkin:current.mapSkin||'board-volcano',participantIds,state:gameState,presence:createPresence(participantIds,now),autoDiscardCounts:{},turnStartedAt:now,turnDeadline:now+TURN_MS,revision:0}));
+        tx.set(doc(db!,'matches',current.id),encodeOnlineMatch({roomId:current.id,boardSkin:current.mapSkin||'board-default',participantIds,state:gameState,presence:createPresence(participantIds,now),autoDiscardCounts:{},turnStartedAt:now,turnDeadline:now+TURN_MS,revision:0}));
         tx.update(ref,{status:'started',startedAt:serverTimestamp()});return current.players.length;
       });
       window.location.assign(`/game?mode=room&room=${encodeURIComponent(room.id)}&players=${count}`);
@@ -614,8 +623,9 @@ export default function Room() {
               <div className="lobby-player" key={player.uid}>
                 <PlayerIdentity
                   player={player}
+                  profileUrl={player.bot?undefined:`/profile/${player.uid}`}
                   subtitle={player.uid === room.hostId ? 'CHỦ PHÒNG' : player.bot ? 'AI' : 'NGƯỜI CHƠI'}
-                  trailing={<><em>{player.ready ? 'SẴN SÀNG' : 'ĐANG CHỜ'}</em>{!player.bot&&<a className="profile-view-button" href={`/profile/${player.uid}`} target="_blank" rel="noreferrer">HỒ SƠ</a>}{isHost&&player.uid!==room.hostId&&<button className="kick-player-button" title={`Kích ${player.name}`} onClick={()=>void kickPlayer(player.uid)}><UserX/><span>KÍCH</span></button>}</>}
+                  trailing={<><em>{player.ready ? 'SẴN SÀNG' : 'ĐANG CHỜ'}</em>{isHost&&player.uid!==room.hostId&&<button className="kick-player-button" title={`Kích ${player.name}`} onClick={()=>void kickPlayer(player.uid)}><UserX/><span>KÍCH</span></button>}</>}
                 />
               </div>
             ) : <div className="empty-slot" key={index}>VỊ TRÍ TRỐNG</div>;
@@ -638,7 +648,7 @@ export default function Room() {
 
         <div className="room-side-stack"><div className="panel lobby-chat-card"><ChatPanel roomId={room.id}/></div></div>
       </div>
-      {showMatchSettings&&<div className="room-modal-backdrop" onMouseDown={()=>setShowMatchSettings(false)}><div className="room-modal match-settings-modal" onMouseDown={event=>event.stopPropagation()}><button className="room-modal-close" onClick={()=>setShowMatchSettings(false)}><X /></button><div className="room-modal-icon"><Settings /></div><span>PHÒNG CHỜ</span><h2>THIẾT LẬP TRẬN</h2><div className="setting-row"><span>Loại phòng</span><b>{room.mode==='ai'?'CHƠI VỚI AI':room.visibility==='public'?'CÔNG KHAI':'RIÊNG TƯ'}</b></div><div className="setting-row match-map-picker"><span>Bản đồ</span>{isHost?<select value={room.mapSkin||'board-volcano'} onChange={event=>void changeMapSkin(event.target.value as NonNullable<Room['mapSkin']>)}><option value="board-volcano">Hầm Mỏ</option><option value="board-ice">Hang Băng</option><option value="board-shipwreck">Tàu Đắm</option></select>:<b>{room.mapSkin==='board-ice'?'HANG BĂNG':room.mapSkin==='board-shipwreck'?'TÀU ĐẮM':'HẦM MỎ'}</b>}</div><div className="setting-row match-player-limit"><span>Người chơi</span>{isHost?<select value={room.maxPlayers} onChange={event=>void changeMaxPlayers(Number(event.target.value))}>{[6,7,8].map(value=><option key={value} value={value} disabled={value<room.players.length}>{value} người</option>)}</select>:<b>{room.maxPlayers} người</b>}</div><div className="setting-row"><span>Vai trò</span><b>BÍ MẬT</b></div><button className="btn btn-primary btn-wide" onClick={()=>setShowMatchSettings(false)}>XONG</button></div></div>}
+      {showMatchSettings&&<div className="room-modal-backdrop" onMouseDown={()=>setShowMatchSettings(false)}><div className="room-modal match-settings-modal" onMouseDown={event=>event.stopPropagation()}><button className="room-modal-close" onClick={()=>setShowMatchSettings(false)}><X /></button><div className="room-modal-icon"><Settings /></div><span>PHÒNG CHỜ</span><h2>THIẾT LẬP TRẬN</h2><div className="setting-row"><span>Loại phòng</span><b>{room.mode==='ai'?'CHƠI VỚI AI':room.visibility==='public'?'CÔNG KHAI':'RIÊNG TƯ'}</b></div><div className="setting-row match-map-picker"><span>Bản đồ</span><b>MỎ VÀNG BỊ LÃNG QUÊN · 12×5</b></div><div className="setting-row match-player-limit"><span>Người chơi</span>{isHost?<select value={room.maxPlayers} onChange={event=>void changeMaxPlayers(Number(event.target.value))}>{[6,7,8].map(value=><option key={value} value={value} disabled={value<room.players.length}>{value} người</option>)}</select>:<b>{room.maxPlayers} người</b>}</div><div className="setting-row"><span>Vai trò</span><b>BÍ MẬT</b></div><button className="btn btn-primary btn-wide" onClick={()=>setShowMatchSettings(false)}>XONG</button></div></div>}
       {showFriendInvite&&<div className="room-modal-backdrop" onMouseDown={()=>setShowFriendInvite(false)}><div className="room-modal friend-invite-modal" onMouseDown={event=>event.stopPropagation()}><button className="room-modal-close" onClick={()=>setShowFriendInvite(false)}><X/></button><div className="room-modal-icon"><UserPlus/></div><span>PHÒNG #{room.code}</span><h2>MỜI BẠN BÈ</h2>{friends.length?<div className="friend-invite-options">{friends.map(friend=>{const joined=room.players.some(player=>player.uid===friend.uid),sent=invitedFriends.includes(friend.uid);return <div key={friend.uid}><PlayerIdentity compact player={{name:friend.displayName,photoURL:friend.photoURL,rank:friend.rank}}/><button className="btn btn-small btn-primary" disabled={joined||sent} onClick={()=>void inviteFriendToRoom(profile,friend.uid,room).then(()=>setInvitedFriends(current=>[...current,friend.uid])).catch(()=>setError('Không thể gửi lời mời phòng.'))}>{joined?'ĐÃ VÀO PHÒNG':sent?'ĐÃ MỜI':'MỜI'}</button></div>})}</div>:<div className="profile-empty"><Users/><b>Chưa có bạn bè</b><span>Hãy kết bạn trước khi mời người khác vào phòng.</span></div>}</div></div>}
     </section>
   );

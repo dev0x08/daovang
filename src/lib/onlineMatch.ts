@@ -4,7 +4,7 @@ export type PresenceStatus='online'|'disconnected'|'left';
 export type MatchPresence=Record<string,{status:PresenceStatus;lastSeen:number;disconnectDeadline:number|null}>;
 export type OnlineMatch={
  roomId:string;
- boardSkin:'board-volcano'|'board-ice'|'board-shipwreck';
+ boardSkin:'board-default'|'board-volcano'|'board-ice'|'board-shipwreck';
  participantIds:string[];
  state:GameState;
  presence:MatchPresence;
@@ -25,7 +25,7 @@ export const encodeOnlineMatch=(match:OnlineMatch):OnlineMatchDocument=>{
 };
 export const decodeOnlineMatch=(data:OnlineMatchDocument):OnlineMatch=>{
  const{stateJson,...rest}=data;
- return{...rest,boardSkin:rest.boardSkin||'board-volcano',autoDiscardCounts:rest.autoDiscardCounts||{},state:JSON.parse(stateJson) as GameState};
+ return{...rest,boardSkin:rest.boardSkin||'board-default',autoDiscardCounts:rest.autoDiscardCounts||{},state:JSON.parse(stateJson) as GameState};
 };
 
 const nextActiveTurn=(match:OnlineMatch,from:number)=>{

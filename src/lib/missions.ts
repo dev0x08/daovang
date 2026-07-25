@@ -25,8 +25,8 @@ export const PROGRESSION_MISSIONS:Mission[]=[
  {id:'progress-level-5-v3',title:'Lên Cấp 5',description:'Đạt Level 5.',kind:'progression',metric:'level',target:5,rewardCoins:200,rewardExp:0},
  {id:'progress-level-10-v3',title:'Lên Cấp 10',description:'Đạt Level 10.',kind:'progression',metric:'level',target:10,rewardCoins:450,rewardExp:0},
  {id:'progress-level-20-v3',title:'Lên Cấp 20',description:'Đạt Level 20.',kind:'progression',metric:'level',target:20,rewardCoins:900,rewardExp:0},
- {id:'progress-rank-gold-v3',title:'Đạt Rank Vàng',description:'Đạt 1.100 Rank Point.',kind:'progression',metric:'rankPoints',target:1100,rewardCoins:300,rewardExp:75},
- {id:'progress-rank-diamond-v3',title:'Đạt Rank Kim Cương',description:'Đạt 1.750 Rank Point.',kind:'progression',metric:'rankPoints',target:1750,rewardCoins:1000,rewardExp:250},
+ {id:'progress-rank-gold-v3',title:'Đạt Rank Vàng',description:'Đạt 1.200 điểm ELO.',kind:'progression',metric:'rankPoints',target:1200,rewardCoins:300,rewardExp:75},
+ {id:'progress-rank-diamond-v3',title:'Đạt Rank Kim Cương',description:'Đạt 2.000 điểm ELO.',kind:'progression',metric:'rankPoints',target:2000,rewardCoins:1000,rewardExp:250},
 ];
 
 export const WEEKLY_MISSIONS:Mission[]=[

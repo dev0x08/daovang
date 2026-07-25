@@ -1,0 +1,214 @@
+[debug] [2026-07-25T02:08:07.998Z] ----------------------------------------------------------------------
+[debug] [2026-07-25T02:08:08.004Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Admin\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules --project banthuyen-3b996
+[debug] [2026-07-25T02:08:08.004Z] CLI Version:   15.24.0
+[debug] [2026-07-25T02:08:08.004Z] Platform:      win32
+[debug] [2026-07-25T02:08:08.005Z] Node Version:  v22.23.1
+[debug] [2026-07-25T02:08:08.005Z] Detected Agent: codex_cli
+[debug] [2026-07-25T02:08:08.005Z] Time:          Sat Jul 25 2026 09:08:08 GMT+0700 (Indochina Time)
+[debug] [2026-07-25T02:08:08.006Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-25T02:08:08.024Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-07-25T02:08:14.377Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-25T02:08:14.407Z] Error: Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.
+    at GoogleAuth.getApplicationDefaultAsync (C:\Users\Admin\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\google-auth-library\build\src\auth\googleauth.js:287:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async GoogleAuth._GoogleAuth_determineClient (C:\Users\Admin\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\google-auth-library\build\src\auth\googleauth.js:834:32)
+    at async GoogleAuth.getClient (C:\Users\Admin\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\google-auth-library\build\src\auth\googleauth.js:698:20)
+    at async GoogleAuth.getAccessToken (C:\Users\Admin\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\google-auth-library\build\src\auth\googleauth.js:722:24)
+    at async autoAuth (C:\Users\Admin\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\firebase-tools\lib\requireAuth.js:38:19)
+    at async requireAuth (C:\Users\Admin\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\firebase-tools\lib\requireAuth.js:100:20)
+    at async requirePermissions (C:\Users\Admin\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\firebase-tools\lib\requirePermissions.js:17:5)
+    at async C:\Users\Admin\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\firebase-tools\lib\command.js:271:17
+[error] 
+[error] Error: Failed to authenticate, have you run firebase login?
+[debug] [2026-07-25T02:08:32.480Z] ----------------------------------------------------------------------
+[debug] [2026-07-25T02:08:32.484Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Admin\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules --project banthuyen-3b996
+[debug] [2026-07-25T02:08:32.485Z] CLI Version:   15.24.0
+[debug] [2026-07-25T02:08:32.485Z] Platform:      win32
+[debug] [2026-07-25T02:08:32.485Z] Node Version:  v22.23.1
+[debug] [2026-07-25T02:08:32.486Z] Detected Agent: codex_cli
+[debug] [2026-07-25T02:08:32.486Z] Time:          Sat Jul 25 2026 09:08:32 GMT+0700 (Indochina Time)
+[debug] [2026-07-25T02:08:32.487Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-25T02:08:32.503Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-07-25T02:08:35.614Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-25T02:08:36.105Z] Running auto auth
+[debug] [2026-07-25T02:08:36.106Z] [iam] checking project banthuyen-3b996 for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-07-25T02:08:36.109Z] No OAuth tokens found
+[debug] [2026-07-25T02:08:36.109Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions [none]
+[debug] [2026-07-25T02:08:36.110Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions  x-goog-user-project=banthuyen-3b996
+[debug] [2026-07-25T02:08:36.110Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-07-25T02:08:36.367Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-07-25T02:08:36.367Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2026-07-25T02:08:37.457Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions 200
+[debug] [2026-07-25T02:08:37.457Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions {"permissions":["datastore.indexes.list","firebase.projects.get"]}
+[debug] [2026-07-25T02:08:37.457Z] [iam] error while checking permissions, command may fail: Authorization failed. This account is missing the following required permissions on project banthuyen-3b996:
+
+  datastore.indexes.create
+  datastore.indexes.delete
+  datastore.indexes.update
+[info] 
+[info] === Deploying to 'banthuyen-3b996'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-07-25T02:08:37.464Z] No OAuth tokens found
+[debug] [2026-07-25T02:08:37.465Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/banthuyen-3b996/services/firestore.googleapis.com [none]
+[debug] [2026-07-25T02:08:37.465Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/banthuyen-3b996/services/firestore.googleapis.com  x-goog-user-project=banthuyen-3b996
+[debug] [2026-07-25T02:08:39.041Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/banthuyen-3b996/services/firestore.googleapis.com 403
+[debug] [2026-07-25T02:08:39.042Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/banthuyen-3b996/services/firestore.googleapis.com [omitted]
+[error] 
+[error] Error: Request to https://serviceusage.googleapis.com/v1/projects/banthuyen-3b996/services/firestore.googleapis.com had HTTP Error: 403, Permission denied to get service [firestore.googleapis.com]
+Help Token: AdZh9Gd9uxOzk-Gik7g6kr8TECGYSqZtFthhWbqdBvXVKvs5E8NMUi2VF3ZXMYfgjrKAf42cXbnznsUMsyP2cvYj91pmVBLznBhIO8krTrZZMYrs
+[debug] [2026-07-25T02:08:39.049Z] Error Context: {
+  "body": {
+    "error": {
+      "code": 403,
+      "message": "Permission denied to get service [firestore.googleapis.com]\nHelp Token: AdZh9Gd9uxOzk-Gik7g6kr8TECGYSqZtFthhWbqdBvXVKvs5E8NMUi2VF3ZXMYfgjrKAf42cXbnznsUMsyP2cvYj91pmVBLznBhIO8krTrZZMYrs",
+      "status": "PERMISSION_DENIED",
+      "details": [
+        {
+          "@type": "type.googleapis.com/google.rpc.PreconditionFailure",
+          "violations": [
+            {
+              "type": "googleapis.com",
+              "subject": "110002"
+            }
+          ]
+        },
+        {
+          "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+          "reason": "AUTH_PERMISSION_DENIED",
+          "domain": "serviceusage.googleapis.com"
+        }
+      ]
+    }
+  },
+  "response": {
+    "statusCode": 403
+  }
+}
+[debug] [2026-07-25T02:14:42.152Z] ----------------------------------------------------------------------
+[debug] [2026-07-25T02:14:42.156Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Admin\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules --project banthuyen-3b996
+[debug] [2026-07-25T02:14:42.156Z] CLI Version:   15.24.0
+[debug] [2026-07-25T02:14:42.157Z] Platform:      win32
+[debug] [2026-07-25T02:14:42.157Z] Node Version:  v22.23.1
+[debug] [2026-07-25T02:14:42.157Z] Detected Agent: codex_cli
+[debug] [2026-07-25T02:14:42.158Z] Time:          Sat Jul 25 2026 09:14:42 GMT+0700 (Indochina Time)
+[debug] [2026-07-25T02:14:42.158Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-25T02:14:45.442Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-25T02:14:45.652Z] Running auto auth
+[debug] [2026-07-25T02:14:45.652Z] [iam] checking project banthuyen-3b996 for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-07-25T02:14:45.655Z] No OAuth tokens found
+[debug] [2026-07-25T02:14:45.658Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions [none]
+[debug] [2026-07-25T02:14:45.658Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions  x-goog-user-project=banthuyen-3b996
+[debug] [2026-07-25T02:14:45.659Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-07-25T02:14:47.111Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions 200
+[debug] [2026-07-25T02:14:47.112Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'banthuyen-3b996'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-07-25T02:14:47.126Z] No OAuth tokens found
+[debug] [2026-07-25T02:14:47.127Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/banthuyen-3b996/services/firestore.googleapis.com [none]
+[debug] [2026-07-25T02:14:47.128Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/banthuyen-3b996/services/firestore.googleapis.com  x-goog-user-project=banthuyen-3b996
+[debug] [2026-07-25T02:14:48.797Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/banthuyen-3b996/services/firestore.googleapis.com 200
+[debug] [2026-07-25T02:14:48.797Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/banthuyen-3b996/services/firestore.googleapis.com [omitted]
+[info] +  firestore: required API firestore.googleapis.com is enabled 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-07-25T02:14:48.807Z] No OAuth tokens found
+[debug] [2026-07-25T02:14:48.808Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/banthuyen-3b996/databases/(default) [none]
+[debug] [2026-07-25T02:14:49.039Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/banthuyen-3b996/databases/(default) 200
+[debug] [2026-07-25T02:14:49.039Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/banthuyen-3b996/databases/(default) {"name":"projects/banthuyen-3b996/databases/(default)","uid":"40399548-8456-4444-b382-29e6fdaafc65","createTime":"2026-07-05T03:53:50.172583Z","updateTime":"2026-07-05T03:53:50.172583Z","locationId":"asia-southeast1","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-07-25T01:14:48.897794Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"zas","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IPXK6+3g7JUDMMrJxtrRupUD"}
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-07-25T02:14:49.042Z] No OAuth tokens found
+[debug] [2026-07-25T02:14:49.043Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996:test [none]
+[debug] [2026-07-25T02:14:49.043Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996:test [omitted]
+[debug] [2026-07-25T02:14:50.444Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996:test 403
+[debug] [2026-07-25T02:14:50.444Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996:test {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"IAM_PERMISSION_DENIED","domain":"iam.googleapis.com","metadata":{"resource":"projects/banthuyen-3b996","error_info_id":"CiQwMTlmOTcwZC1jNjRkLTc4ZjMtYTRmOS05YWViNTg0ZDMyOWMSGHByb2plY3RzL2JhbnRodXllbi0zYjk5Ng==","troubleshooter_url":"https://console.cloud.google.com/iam-admin/troubleshooter/summary;errorId=CiQwMTlmOTcwZC1jNjRkLTc4ZjMtYTRmOS05YWViNTg0ZDMyOWMSGHByb2plY3RzL2JhbnRodXllbi0zYjk5Ng%3D%3D","permission":"firebaserules.rulesets.test"}}]}}
+[error] 
+[error] Error: Request to https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996:test had HTTP Error: 403, The caller does not have permission
+[debug] [2026-07-25T02:14:50.447Z] Error Context: {
+  "body": {
+    "error": {
+      "code": 403,
+      "message": "The caller does not have permission",
+      "status": "PERMISSION_DENIED",
+      "details": [
+        {
+          "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+          "reason": "IAM_PERMISSION_DENIED",
+          "domain": "iam.googleapis.com",
+          "metadata": {
+            "resource": "projects/banthuyen-3b996",
+            "error_info_id": "CiQwMTlmOTcwZC1jNjRkLTc4ZjMtYTRmOS05YWViNTg0ZDMyOWMSGHByb2plY3RzL2JhbnRodXllbi0zYjk5Ng==",
+            "troubleshooter_url": "https://console.cloud.google.com/iam-admin/troubleshooter/summary;errorId=CiQwMTlmOTcwZC1jNjRkLTc4ZjMtYTRmOS05YWViNTg0ZDMyOWMSGHByb2plY3RzL2JhbnRodXllbi0zYjk5Ng%3D%3D",
+            "permission": "firebaserules.rulesets.test"
+          }
+        }
+      ]
+    }
+  },
+  "response": {
+    "statusCode": 403
+  }
+}
+[debug] [2026-07-25T02:15:52.464Z] ----------------------------------------------------------------------
+[debug] [2026-07-25T02:15:52.468Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Admin\AppData\Local\npm-cache\_npx\7750544ccf494d8b\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules --project banthuyen-3b996
+[debug] [2026-07-25T02:15:52.469Z] CLI Version:   15.24.0
+[debug] [2026-07-25T02:15:52.469Z] Platform:      win32
+[debug] [2026-07-25T02:15:52.469Z] Node Version:  v22.23.1
+[debug] [2026-07-25T02:15:52.470Z] Detected Agent: codex_cli
+[debug] [2026-07-25T02:15:52.471Z] Time:          Sat Jul 25 2026 09:15:52 GMT+0700 (Indochina Time)
+[debug] [2026-07-25T02:15:52.471Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-25T02:15:55.599Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-25T02:15:55.799Z] Running auto auth
+[debug] [2026-07-25T02:15:55.800Z] [iam] checking project banthuyen-3b996 for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-07-25T02:15:55.804Z] No OAuth tokens found
+[debug] [2026-07-25T02:15:55.806Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions [none]
+[debug] [2026-07-25T02:15:55.806Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions  x-goog-user-project=banthuyen-3b996
+[debug] [2026-07-25T02:15:55.806Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-07-25T02:15:57.110Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions 200
+[debug] [2026-07-25T02:15:57.110Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/banthuyen-3b996:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'banthuyen-3b996'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-07-25T02:15:57.121Z] No OAuth tokens found
+[debug] [2026-07-25T02:15:57.123Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/banthuyen-3b996/databases/(default) [none]
+[debug] [2026-07-25T02:15:57.330Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/banthuyen-3b996/databases/(default) 200
+[debug] [2026-07-25T02:15:57.330Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/banthuyen-3b996/databases/(default) {"name":"projects/banthuyen-3b996/databases/(default)","uid":"40399548-8456-4444-b382-29e6fdaafc65","createTime":"2026-07-05T03:53:50.172583Z","updateTime":"2026-07-05T03:53:50.172583Z","locationId":"asia-southeast1","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-07-25T01:15:57.200577Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"zas","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IJW+tI7h7JUDMMrJxtrRupUD"}
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-07-25T02:15:57.333Z] No OAuth tokens found
+[debug] [2026-07-25T02:15:57.334Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996:test [none]
+[debug] [2026-07-25T02:15:57.334Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996:test [omitted]
+[debug] [2026-07-25T02:15:58.866Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996:test 200
+[debug] [2026-07-25T02:15:58.867Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996:test {"issues":[{"sourcePosition":{"fileName":"firestore.rules","line":6,"column":14,"currentOffset":239,"endOffset":248},"description":"Unused function: roomMember.","severity":"WARNING"},{"sourcePosition":{"fileName":"firestore.rules","line":6,"column":134,"currentOffset":359,"endOffset":365},"description":"Invalid variable name: request.","severity":"WARNING"}]}
+[warn] !  [W] 6:14 - Unused function: roomMember. 
+[warn] !  [W] 6:134 - Invalid variable name: request. 
+[info] +  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-07-25T02:15:58.882Z] No OAuth tokens found
+[debug] [2026-07-25T02:15:58.884Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996/releases pageSize=10&pageToken=
+[debug] [2026-07-25T02:16:00.241Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996/releases 200
+[debug] [2026-07-25T02:16:00.242Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996/releases {"releases":[{"name":"projects/banthuyen-3b996/releases/cloud.firestore","rulesetName":"projects/banthuyen-3b996/rulesets/5f446847-373b-44cc-881a-ab7829c72214","createTime":"2026-07-05T03:53:52.830801Z","updateTime":"2026-07-24T02:37:46.655474Z"}]}
+[debug] [2026-07-25T02:16:00.246Z] No OAuth tokens found
+[debug] [2026-07-25T02:16:00.247Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996/rulesets/5f446847-373b-44cc-881a-ab7829c72214 [none]
+[debug] [2026-07-25T02:16:00.566Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996/rulesets/5f446847-373b-44cc-881a-ab7829c72214 200
+[debug] [2026-07-25T02:16:00.567Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996/rulesets/5f446847-373b-44cc-881a-ab7829c72214 [omitted]
+[info] i  firestore: uploading rules firestore.rules... 
+[debug] [2026-07-25T02:16:00.574Z] No OAuth tokens found
+[debug] [2026-07-25T02:16:00.575Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996/rulesets [none]
+[debug] [2026-07-25T02:16:00.576Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996/rulesets [omitted]
+[debug] [2026-07-25T02:16:02.097Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996/rulesets 200
+[debug] [2026-07-25T02:16:02.098Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996/rulesets {"name":"projects/banthuyen-3b996/rulesets/826568eb-e733-4ed1-b8ca-9e665939991f","source":{"files":[{"content":"rules_version = '2';\r\nservice cloud.firestore {\r\n  match /databases/{database}/documents {\r\n    function signedIn() { return request.auth != null; }\r\n    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }\r\n    function roomMember(data) { return signedIn() && data.players is list && data.players.size() > 0 && data.players.hasAny([{'uid': request.auth.uid}]); }\r\n    function validRoomShape(data) {\r\n      return data.code is string && data.code.size() == 6\r\n        && data.name is string && data.name.size() >= 3 && data.name.size() <= 40\r\n        && data.hostId is string\r\n        && data.status in ['waiting','started']\r\n        && data.visibility in ['public','private']\n        && (!data.keys().hasAny(['mapSkin']) || data.mapSkin in ['board-default','board-volcano','board-ice','board-shipwreck'])\n        && data.maxPlayers is int && data.maxPlayers >= 6 && data.maxPlayers <= 8\r\n        && data.players is list && data.players.size() >= 1 && data.players.size() <= data.maxPlayers;\r\n    }\r\n\r\n    match /users/{uid} {\r\n      allow read: if signedIn();\r\n      allow create: if isSelf(uid)\r\n        && request.resource.data.uid == uid\r\n        && request.resource.data.coins == 500\r\n        && request.resource.data.exp == 0\r\n        && request.resource.data.rankPoints == 0\n        && request.resource.data.wins == 0\r\n        && request.resource.data.losses == 0\r\n        && request.resource.data.gamesPlayed == 0;\r\n      // This blocks edits to identity ownership and rejects impossible/negative values.\r\n      // Economy is still client-driven in this prototype; production rewards should move to Cloud Functions.\r\n      allow update: if isSelf(uid)\r\n        && request.resource.data.uid == resource.data.uid\r\n        && request.resource.data.email == resource.data.email\r\n        && request.resource.data.coins is int && request.resource.data.coins >= 0 && request.resource.data.coins <= 1000000\r\n        && request.resource.data.exp is int && request.resource.data.exp >= 0 && request.resource.data.exp <= 10000000\r\n        && (!request.resource.data.keys().hasAny(['rankPoints'])\r\n          || (request.resource.data.rankPoints is int && request.resource.data.rankPoints >= 0 && request.resource.data.rankPoints <= 10000))\r\n        && request.resource.data.wins is int && request.resource.data.wins >= 0\r\n        && request.resource.data.losses is int && request.resource.data.losses >= 0\r\n        && request.resource.data.gamesPlayed == request.resource.data.wins + request.resource.data.losses\r\n        && request.resource.data.onlineSecondsToday is int && request.resource.data.onlineSecondsToday >= 0 && request.resource.data.onlineSecondsToday <= 86400\r\n        && request.resource.data.dailyChats is int && request.resource.data.dailyChats >= 0 && request.resource.data.dailyChats <= 500;\r\n      allow delete: if false;\n      match /friendRequests/{fromUid} {\n        allow read: if signedIn() && (request.auth.uid == uid || request.auth.uid == fromUid);\n        allow create: if signedIn()\n          && request.auth.uid == fromUid\n          && fromUid != uid\n          && request.resource.data.fromUid == fromUid\n          && request.resource.data.toUid == uid\n          && request.resource.data.uid == fromUid\n          && request.resource.data.displayName is string\n          && request.resource.data.displayName.size() <= 60\n          && request.resource.data.photoURL is string\n          && request.resource.data.photoURL.size() <= 500\n          && request.resource.data.rank is string\n          && request.resource.data.equipped is map\n          && request.resource.data.createdAt == request.time;\n        allow update: if false;\n        allow delete: if signedIn() && (request.auth.uid == uid || request.auth.uid == fromUid);\n      }\n      match /friends/{friendUid} {\n        allow read: if signedIn() && (request.auth.uid == uid || request.auth.uid == friendUid);\n        allow create: if signedIn()\n          && request.resource.data.friendUid == friendUid\n          && request.resource.data.uid == friendUid\n          && request.resource.data.displayName is string\n          && request.resource.data.displayName.size() <= 60\n          && request.resource.data.photoURL is string\n          && request.resource.data.photoURL.size() <= 500\n          && request.resource.data.rank is string\n          && request.resource.data.equipped is map\n          && request.resource.data.createdAt == request.time\n          && (\n            (request.auth.uid == uid\n              && exists(/databases/$(database)/documents/users/$(uid)/friendRequests/$(friendUid)))\n            || (request.auth.uid == friendUid\n              && exists(/databases/$(database)/documents/users/$(friendUid)/friendRequests/$(uid)))\n          );\n        allow update: if signedIn() && request.auth.uid == uid;\n        allow delete: if signedIn() && (request.auth.uid == uid || request.auth.uid == friendUid);\n      }\n      match /roomInvites/{roomId} {\n        allow read: if signedIn() && (request.auth.uid == uid || request.auth.uid == resource.data.fromUid);\n        allow create, update: if signedIn()\n          && request.auth.uid == request.resource.data.fromUid\n          && request.resource.data.roomId == roomId\n          && exists(/databases/$(database)/documents/users/$(uid)/friends/$(request.auth.uid))\n          && request.resource.data.roomCode is string\n          && request.resource.data.roomName is string\n          && request.resource.data.fromName is string\n          && request.resource.data.fromPhotoURL is string\n          && request.resource.data.createdAt == request.time;\n        allow delete: if signedIn() && (request.auth.uid == uid || request.auth.uid == resource.data.fromUid);\n      }\n      match /matchHistory/{matchId} { allow read: if isSelf(uid); allow create: if isSelf(uid) && request.resource.data.matchId == matchId; allow update, delete: if false; }\n      match /completedMatches/{matchId} {\r\n        allow read: if isSelf(uid);\r\n        allow create: if isSelf(uid)\r\n          && !exists(/databases/$(database)/documents/users/$(uid)/completedMatches/$(matchId))\r\n          && request.resource.data.won is bool\r\n          && request.resource.data.reward.exp is int\r\n          && request.resource.data.reward.coins is int\r\n          && request.resource.data.reward.exp >= 0 && request.resource.data.reward.exp <= 500\r\n          && request.resource.data.reward.coins >= 0 && request.resource.data.reward.coins <= 500;\r\n        allow update, delete: if false;\r\n      }\r\n    }\r\n\r\n    match /reports/{reportId} { allow create: if signedIn() && request.resource.data.reporterUid == request.auth.uid && request.resource.data.reason in ['AFK','Spam','Tên phản cảm','Phá game','Nghi gian lận']; allow read, update, delete: if false; }\r\n\r\n    match /matches/{matchId} {\n      allow create: if signedIn()\n        && request.resource.data.roomId == matchId\n        && request.resource.data.participantIds is list\n        && request.auth.uid in request.resource.data.participantIds;\n      allow read: if signedIn() && request.auth.uid in resource.data.participantIds;\n      allow update: if signedIn()\n        && request.auth.uid in resource.data.participantIds\n        && request.resource.data.roomId == resource.data.roomId\n        && request.resource.data.participantIds == resource.data.participantIds;\n      allow delete: if false;\n    }\n\n    match /rooms/{roomId} {\n      allow read: if signedIn();\r\n      allow create: if signedIn() && validRoomShape(request.resource.data)\n        && request.resource.data.hostId == request.auth.uid\n        && (\n          (request.resource.data.mode == 'online' && request.resource.data.players.size() == 1)\n          || (request.resource.data.mode == 'ai'\n              && request.resource.data.players.size() == 6\n              && request.resource.data.players[1].bot == true\n              && request.resource.data.players[2].bot == true\n              && request.resource.data.players[3].bot == true\n              && request.resource.data.players[4].bot == true\n              && request.resource.data.players[5].bot == true)\n        )\n        && request.resource.data.players[0].uid == request.auth.uid;\n      allow update: if signedIn() && validRoomShape(request.resource.data)\r\n        && request.resource.data.hostId == resource.data.hostId\r\n        && request.resource.data.code == resource.data.code\r\n        && (\r\n          request.auth.uid == resource.data.hostId\r\n          || (resource.data.status == 'waiting' && request.resource.data.status == 'waiting'\r\n              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players']))\r\n        );\r\n      allow delete: if signedIn() && request.auth.uid == resource.data.hostId;\r\n\r\n      match /messages/{messageId} {\r\n        allow read: if signedIn();\r\n        allow create: if signedIn()\r\n          && request.resource.data.keys().hasOnly(['uid','displayName','photoURL','equipped','text','createdAt'])\n          && request.resource.data.uid == request.auth.uid\r\n          && request.resource.data.displayName is string && request.resource.data.displayName.size() <= 60\r\n          && request.resource.data.photoURL is string && request.resource.data.photoURL.size() <= 500\n          && request.resource.data.equipped is map\n          && request.resource.data.text is string\r\n          && request.resource.data.text.size() > 0\r\n          && request.resource.data.text.size() <= 300\r\n          && request.resource.data.createdAt == request.time;\r\n        allow update, delete: if false;\r\n      }\r\n    }\r\n  }\r\n}\r\n","name":"firestore.rules"}]},"createTime":"2026-07-25T02:16:01.825471Z","metadata":{"services":["cloud.firestore"]}}
+[debug] [2026-07-25T02:16:02.099Z] [rules] created ruleset projects/banthuyen-3b996/rulesets/826568eb-e733-4ed1-b8ca-9e665939991f
+[debug] [2026-07-25T02:16:02.102Z] [rules] releasing cloud.firestore with ruleset projects/banthuyen-3b996/rulesets/826568eb-e733-4ed1-b8ca-9e665939991f
+[debug] [2026-07-25T02:16:02.106Z] No OAuth tokens found
+[debug] [2026-07-25T02:16:02.107Z] >>> [apiv2][query] PATCH https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996/releases/cloud.firestore [none]
+[debug] [2026-07-25T02:16:02.107Z] >>> [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996/releases/cloud.firestore {"release":{"name":"projects/banthuyen-3b996/releases/cloud.firestore","rulesetName":"projects/banthuyen-3b996/rulesets/826568eb-e733-4ed1-b8ca-9e665939991f"}}
+[debug] [2026-07-25T02:16:03.612Z] <<< [apiv2][status] PATCH https://firebaserules.googleapis.com/v1/projects/banthuyen-3b996/releases/cloud.firestore 200
