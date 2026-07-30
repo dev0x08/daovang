@@ -58,13 +58,13 @@ export async function findMyGuild(uid:string):Promise<{guild:Guild;member:GuildM
   return null;
 }
 
-export async function createGuild(profile:Profile,name:string,tag:string,description:string):Promise<string>{
+export async function createGuild(profile:Profile,name:string,description:string):Promise<string>{
   if(!db)throw new Error('Firebase chưa sẵn sàng.');
   if(await findMyGuild(profile.uid))throw new Error('Bạn đã thuộc một guild.');
-  const safeName=name.trim().replace(/\s+/g,' '),safeTag=tag.trim().toUpperCase();
+  const safeName=name.trim().replace(/\s+/g,' '),safeDescription=description.trim();
   const slug=nameSlug(safeName);
   if(safeName.length<3||safeName.length>12)throw new Error('Tên guild phải từ 3 đến 12 ký tự.');
-  if(safeTag.length<2||safeTag.length>5)throw new Error('Nametag phải từ 2 đến 5 ký tự.');
+  if(safeDescription.length<10||safeDescription.length>160)throw new Error('Giới thiệu guild phải từ 10 đến 160 ký tự.');
   if(!slug)throw new Error('Tên guild không hợp lệ.');
   if((await listGuilds()).some(guild=>nameSlug(guild.name)===slug))throw new Error('Tên guild này đã tồn tại.');
   const guildRef=doc(db,'guilds',slug),nameRef=doc(db,'guildNames',slug),userRef=doc(db,'users',profile.uid);
@@ -74,7 +74,7 @@ export async function createGuild(profile:Profile,name:string,tag:string,descrip
     const exp=Math.max(0,Number(userData?.exp||0)),coins=Math.max(0,Number(userData?.coins||0));
     if(exp<700)throw new Error('Cần đạt cấp 5 để thành lập guild.');
     if(coins<5000)throw new Error('Cần 5.000 vàng để thành lập guild.');
-    transaction.set(guildRef,{name:safeName,slug,tag:safeTag,description:description.trim(),ownerId:profile.uid,ownerName:profile.displayName,memberCount:1,totalContribution:0,totalWarPoints:0,power:0,treasury:5000,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+    transaction.set(guildRef,{name:safeName,slug,tag:'',description:safeDescription,ownerId:profile.uid,ownerName:profile.displayName,memberCount:1,totalContribution:0,totalWarPoints:0,power:0,treasury:5000,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
     transaction.set(nameRef,{guildId:guildRef.id,name:safeName,ownerId:profile.uid,createdAt:serverTimestamp()});
     transaction.set(doc(guildRef,'members',profile.uid),{...memberData(profile,'owner'),joinedAt:serverTimestamp()});
     transaction.update(userRef,{coins:coins-5000});
@@ -154,6 +154,16 @@ export async function removeGuildMember(guildId:string,uid:string){
 export async function updateGuildMember(guildId:string,uid:string,patch:{role?:GuildRole;title?:string}){
   if(!db)return;
   await updateDoc(doc(db,'guilds',guildId,'members',uid),{...patch,...(patch.title!==undefined?{title:patch.title.trim().slice(0,30)}:{})});
+}
+
+export async function transferGuildOwnership(guildId:string,currentOwnerId:string,nextOwner:GuildMember){
+  if(!db)return;
+  if(nextOwner.uid===currentOwnerId||nextOwner.uid.startsWith('guild-test-'))throw new Error('Người kế nhiệm không hợp lệ.');
+  const batch=writeBatch(db);
+  batch.update(doc(db,'guilds',guildId),{ownerId:nextOwner.uid,ownerName:nextOwner.displayName,updatedAt:serverTimestamp()});
+  batch.update(doc(db,'guilds',guildId,'members',currentOwnerId),{role:'officer',title:'Cựu hội trưởng'});
+  batch.update(doc(db,'guilds',guildId,'members',nextOwner.uid),{role:'owner',title:'Hội trưởng'});
+  await batch.commit();
 }
 
 export async function updateGuildAnnouncement(guildId:string,announcement:string){

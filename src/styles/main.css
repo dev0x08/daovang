@@ -1583,7 +1583,6 @@ footer.redesigned-bottom-hud .hand-hud-panel .bottom-special-card.sabotage b{
 .guild-member-name-cell:hover .guild-inline-settings,.guild-inline-settings:focus-visible{opacity:1;pointer-events:auto;transform:translateY(-50%) scale(1)}
 .guild-inline-settings:hover{background:#1a3d2a}
 .guild-member-editor{width:min(520px,96vw)}
-.guild-member-editor>.player-identity{margin:12px 0;padding:10px;border:1px solid #2e5d45;background:#0b1e15}
 .guild-member-editor select{width:100%;margin-top:7px}
 .guild-title-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:14px 0}
 .guild-title-picker>small{grid-column:1/-1;color:#759283;font-size:8px;letter-spacing:1.3px}
@@ -1806,6 +1805,89 @@ h1,h2,h3,.brand b,.btn{font-family:'Chakra Petch','Be Vietnam Pro',sans-serif}
 .game-route .match-summary-card header,.game-route .summary-head,.game-route .summary-row{border-color:#dfd7cc!important}.game-route .summary-head{background:#eee9df!important;color:#756e67!important}.game-route .summary-row{background:#fffdf9!important;color:#322d29!important}.game-route .summary-row:nth-child(even){background:#f8f4ec!important}
 .game-route .match-summary-card footer{border-color:#ded6ca!important;background:#f4efe7!important;color:#554f49!important}.game-route .like-btn,.game-route .friend-summary-btn{border-color:#a9c9bb!important;border-radius:11px!important;background:#edf6f1!important;color:#447e6b!important}
 @media(max-width:760px){.nav{background:#fffdf8;border-color:#ddd5c9;box-shadow:0 12px 24px rgba(46,43,40,.12)}.nav a{color:#514b45}.site-shell:not(.game-route) footer{background:#eee9df}.friends-hero,.missions-hero,.profile-banner,.rank-war-hero,.guild-hero{border-radius:18px!important}}
+
+/* Canonical treasure-mine system. Every route shares these primitives. */
+:root{
+  --mine-bg:#070806;
+  --mine-bg-soft:#0c0e0a;
+  --mine-panel:#12130f;
+  --mine-panel-raised:#191812;
+  --mine-panel-soft:#211d13;
+  --mine-line:#4a3d24;
+  --mine-line-soft:#29271d;
+  --mine-gold:#e2b84f;
+  --mine-gold-bright:#ffd875;
+  --mine-gold-dark:#8f641d;
+  --mine-jade:#4ba477;
+  --mine-jade-dark:#1e5f42;
+  --mine-text:#f4eedf;
+  --mine-muted:#a39b89;
+  --mine-danger:#c85a4c;
+  --mine-radius:12px;
+  --mine-shadow:0 18px 52px rgba(0,0,0,.42);
+  --ui-bg:var(--mine-bg);
+  --ui-surface:var(--mine-panel);
+  --ui-surface-2:var(--mine-panel-raised);
+  --ui-surface-3:var(--mine-panel-soft);
+  --ui-line:var(--mine-line);
+  --ui-line-strong:var(--mine-gold-dark);
+  --ui-accent:var(--mine-gold);
+  --ui-accent-soft:var(--mine-gold-bright);
+  --ui-text:var(--mine-text);
+  --ui-muted:var(--mine-muted);
+  --ui-danger:var(--mine-danger);
+  --ui-gold:var(--mine-gold);
+}
+body{background:var(--mine-bg);color:var(--mine-text)}
+body:before{background-image:linear-gradient(rgba(226,184,79,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(226,184,79,.025) 1px,transparent 1px),radial-gradient(circle at 76% 4%,rgba(226,184,79,.09),transparent 26%);background-size:48px 48px,48px 48px,100% 100%;opacity:1}
+.site-shell:not(.game-route)>main{background:radial-gradient(circle at 82% 5%,rgba(199,143,35,.12),transparent 30%),radial-gradient(circle at 10% 85%,rgba(45,120,81,.08),transparent 28%),var(--mine-bg)}
+.topbar{border-color:#332c1b;background:rgba(7,8,6,.95);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.brand-mark{border:1px solid #9d7429;border-radius:8px;background:linear-gradient(145deg,#282013,#12110c);color:var(--mine-gold-bright);box-shadow:inset 0 0 12px rgba(226,184,79,.08),0 0 20px rgba(226,184,79,.08)}
+.brand b{color:var(--mine-text)}.brand small{color:var(--mine-gold)}.nav a{color:#aaa393}.nav a:hover,.nav a.active{color:var(--mine-gold-bright)}.nav a.active:after{background:var(--mine-gold)}
+.wallet,.user-menu-trigger{border-color:#4a3b20!important;border-radius:10px!important;background:#15140f!important;color:var(--mine-gold-bright)!important;box-shadow:none}.user-menu-copy b{color:var(--mine-text)}.user-menu-copy small{color:#a89d83}.avatar{border-color:#8d6826;background:#1d1b14}
+.user-dropdown{border-color:#584723!important;border-radius:12px!important;background:#11120e!important;color:var(--mine-text)!important;box-shadow:0 22px 60px rgba(0,0,0,.55)!important}.user-dropdown-head{background:#1c1911!important}.user-dropdown-links a{color:#d2cbbb!important}.user-dropdown-links a:hover{background:#282113!important;color:var(--mine-gold-bright)!important}.user-logout{border-color:#683b33!important;background:#281311!important;color:#e7958c!important}
+.site-shell:not(.game-route) footer{border-color:#332c1b;background:#090a08;color:#8f8878}.site-shell:not(.game-route) footer a:hover{color:var(--mine-gold)}
+.app-page{color:var(--mine-text)!important;background:transparent!important}
+.app-page:not(.app-page-full){width:min(1500px,100%);min-height:calc(100vh - 72px);margin:0 auto;padding:38px clamp(16px,5vw,78px) 74px}
+.app-page :where(h1,h2,h3,b,strong){color:var(--mine-text)}
+.app-page .section-heading>span,.app-hero>div>span,.app-page .eyebrow{color:var(--mine-gold)!important}
+.app-page .section-heading h1,.app-page .section-heading h2,.app-hero h1{color:var(--mine-text)!important;text-shadow:0 5px 22px rgba(0,0,0,.34)!important}
+.app-page .section-heading p,.app-hero p{color:var(--mine-muted)!important}
+.app-hero{position:relative;border:1px solid #57451f!important;border-radius:var(--mine-radius)!important;background:linear-gradient(115deg,#1d1a11,#0e100c 68%)!important;color:var(--mine-text)!important;box-shadow:var(--mine-shadow)!important;clip-path:none!important;overflow:hidden}
+.app-hero:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 84% 12%,rgba(226,184,79,.16),transparent 29%),linear-gradient(115deg,transparent 68%,rgba(75,164,119,.04))!important}
+.app-section,.app-page .panel{border:1px solid var(--mine-line)!important;border-radius:var(--mine-radius)!important;background:linear-gradient(145deg,var(--mine-panel-raised),#0d0f0b)!important;color:var(--mine-text)!important;box-shadow:var(--mine-shadow)!important;clip-path:none!important}
+.app-page .panel>header,.app-section>header{border-color:var(--mine-line)!important;background:#18160f!important;color:var(--mine-text)!important}
+.app-tabs{padding:5px;border:1px solid var(--mine-line)!important;border-radius:var(--mine-radius)!important;background:#0d0f0b!important}
+.app-tabs>button{border:1px solid transparent!important;border-radius:8px!important;background:transparent!important;color:var(--mine-muted)!important;box-shadow:none!important}
+.app-tabs>button:hover,.app-tabs>button.active{border-color:#665226!important;background:linear-gradient(145deg,#292114,#17150e)!important;color:var(--mine-gold-bright)!important}
+.btn{min-height:43px;border-radius:8px!important;font-family:'Be Vietnam Pro',sans-serif;font-size:11px;letter-spacing:.45px;box-shadow:none!important}
+.btn-primary{border-color:#d0a13b!important;background:linear-gradient(180deg,#e6bd54,#b78122)!important;color:#211707!important;text-shadow:0 1px rgba(255,255,255,.2)!important}.btn-primary:hover{border-color:#f1ce70!important;background:linear-gradient(180deg,#f2cf72,#c79228)!important;box-shadow:0 9px 24px rgba(202,150,40,.2)!important}
+.btn-ghost{border-color:#4b432e!important;background:#151610!important;color:#d6d0c1!important}.btn-ghost:hover{border-color:#9b792e!important;background:#211d13!important;color:var(--mine-gold-bright)!important}
+.btn-danger{border-color:#824139!important;background:linear-gradient(180deg,#6a2b26,#3a1714)!important;color:#f1b3ac!important}.btn-danger:hover{border-color:#bd594e!important;background:linear-gradient(180deg,#85372f,#4d1d19)!important}
+.app-page :where(input,select,textarea),.guild-modal :where(input,select,textarea),.room-modal :where(input,select,textarea){border:1px solid #4a422e!important;border-radius:8px!important;background:#0a0c09!important;color:var(--mine-text)!important;box-shadow:inset 0 2px 8px rgba(0,0,0,.3)!important}
+.app-page :where(input,select,textarea):focus,.guild-modal :where(input,select,textarea):focus,.room-modal :where(input,select,textarea):focus{border-color:#b88b31!important;outline:none!important;box-shadow:0 0 0 3px rgba(226,184,79,.08)!important}
+.app-page :where(input,textarea)::placeholder{color:#706c60}
+.app-page :where(.friend-search-results article,.friends-section article,.inventory-grid article,.mission-row,.history-row,.rank-war-row,.guild-ranking-board article,.guild-browser-grid article,.guild-member-list>article,.room-browser-row,.room-player-card,.admin-table-body article){border-color:var(--mine-line-soft)!important;background:#11130f!important;color:var(--mine-text)!important}
+.app-page :where(.friend-search-results article,.friends-section article,.inventory-grid article,.mission-row,.rank-war-row,.guild-ranking-board article,.guild-member-list>article):nth-child(even){background:#16150f!important}
+.app-page :where(.friend-search-results article,.friends-section article,.inventory-grid article,.mission-row,.rank-war-row,.guild-ranking-board article,.guild-member-list>article,.room-browser-row,.room-player-card,.admin-table-body article):hover{border-color:#675328!important;background:#211d13!important}
+.app-page :where(.shop-tabs,.mission-category-nav,.rank-war-tabs,.inventory-tabs,.guild-activity-tabs){padding:5px;border:1px solid var(--mine-line)!important;border-radius:10px!important;background:#0c0e0a!important}
+.app-page :where(.shop-tabs,.mission-category-nav,.rank-war-tabs,.inventory-tabs,.guild-activity-tabs) :where(button,a){border-radius:7px!important;background:transparent!important;color:var(--mine-muted)!important}
+.app-page :where(.shop-tabs,.mission-category-nav,.rank-war-tabs,.inventory-tabs,.guild-activity-tabs) :where(button.active,a:hover){border-color:#735a28!important;background:#261f13!important;color:var(--mine-gold-bright)!important}
+.app-page :where(.friends-summary,.mission-level,.rank-season-card,.guild-level-badge,.profile-rank-badge,.profile-level-badge){border:1px solid #725926!important;border-radius:10px!important;background:linear-gradient(145deg,#2a2113,#14140e)!important;color:var(--mine-gold-bright)!important;box-shadow:inset 0 0 18px rgba(226,184,79,.05)!important}
+.app-page :where(.mission-progress,.profile-exp){border-color:#443a24!important;background:#080a07!important}.app-page :where(.mission-progress,.profile-exp) i{background:linear-gradient(90deg,#8a601c,#e0b448)!important}
+.app-page :where(.mission-check,.reward-chip,.history-reward span,.badge-list>span,.profile-empty){border-color:#413a29!important;background:#151610!important;color:#bcb5a5!important}
+.app-page .history-row.won{box-shadow:inset 4px 0 var(--mine-jade),var(--mine-shadow)!important}.app-page .history-row.lost{box-shadow:inset 4px 0 var(--mine-danger),var(--mine-shadow)!important}
+.app-page :where(.rank-war-stats,.guild-stat-grid){border-color:var(--mine-line)!important;background:#10120e!important}.app-page :where(.rank-war-stats,.guild-stat-grid) article{border-color:var(--mine-line)!important}.app-page :where(.rank-war-stats,.guild-stat-grid) svg{color:var(--mine-gold)!important}
+.app-page .rank-war-champion,.app-page .rank-war-champion.place-1{border-color:var(--mine-line)!important;border-radius:12px!important;background:linear-gradient(145deg,#1c1a12,#0f100c)!important}.app-page .rank-war-champion.place-1{border-color:#92702c!important;box-shadow:0 18px 45px rgba(0,0,0,.42),inset 0 0 25px rgba(226,184,79,.05)!important}
+.app-page .shop-card,.app-page .guide-chapter,.app-page .play-mode-card{border-color:var(--mine-line)!important;border-radius:12px!important;background:linear-gradient(145deg,#191812,#0e100c)!important;color:var(--mine-text)!important}.app-page :where(.shop-card,.guide-chapter,.play-mode-card):hover{border-color:#8a6a2b!important;background:#211d13!important}.app-page .shop-card.equipped{border-color:#9a772e!important;box-shadow:inset 3px 0 var(--mine-gold),var(--mine-shadow)!important}
+.app-page :where(.guild-browser-columns,.guild-member-columns,.admin-table-head,.room-browser-table-head){border-color:var(--mine-line)!important;background:#17150f!important;color:#a89f8d!important}
+.app-page .guild-action-hub{border-color:var(--mine-line)!important;background:#0e100c!important}.app-page .guild-action-hub>button{border-color:#4d432c!important;background:#171710!important;color:#d2cbbc!important}.app-page .guild-action-hub>button:hover{border-color:#8b6a2b!important;background:#251f13!important;color:var(--mine-gold-bright)!important}.app-page .guild-action-hub>button.exit{border-color:#633a32!important;background:#281512!important;color:#e99a91!important}
+.gateway-home.app-page{background:radial-gradient(circle at 74% 28%,rgba(226,184,79,.13),transparent 30%),linear-gradient(135deg,#0b0d09,#17140d)!important;color:var(--mine-text)!important}.gateway-home .gateway-copy h1{color:var(--mine-text)!important}.gateway-home .gateway-copy h1 em,.gateway-home .gateway-eyebrow{color:var(--mine-gold-bright)!important}.gateway-home .gateway-copy p,.gateway-home .gateway-facts{color:#aaa28f!important}.gateway-enter{border-color:#d2a63f!important;border-radius:10px!important;background:linear-gradient(180deg,#e7bd54,#b77e1e)!important;color:#201606!important}.gateway-door{border-color:#6b5428!important;box-shadow:0 0 70px rgba(226,184,79,.16)!important}
+.login-page.app-page{background:radial-gradient(circle at 18% 50%,rgba(226,184,79,.1),transparent 30%),#090b08!important;color:var(--mine-text)!important}.login-page .login-card{border-color:var(--mine-line)!important;border-radius:14px!important;background:linear-gradient(145deg,#191812,#0d0f0b)!important;color:var(--mine-text)!important}.login-page .login-visual h1,.login-page .login-card h2{color:var(--mine-text)!important}.login-page :where(.login-visual p,.login-card p,.login-card>small){color:var(--mine-muted)!important}
+.guild-modal-backdrop,.room-modal-backdrop{background:rgba(2,3,2,.78)!important}.guild-modal,.room-modal{border-color:#655027!important;border-radius:14px!important;background:linear-gradient(145deg,#1b1911,#0e100c)!important;color:var(--mine-text)!important;box-shadow:0 28px 85px rgba(0,0,0,.68)!important}.guild-modal h2,.room-modal h2{color:var(--mine-text)!important}.guild-modal label,.room-modal label{color:#b2aa98!important}.guild-modal>section,.guild-create-cost,.guild-contribute-balance,.guild-recruit-applications{border-color:#49402b!important;background:#13140f!important}.guild-close,.room-modal-close{border-color:#794038!important;background:#341916!important;color:#ef9a91!important}
+.guild-message,.profile-message{border-color:#7f642c!important;border-radius:8px!important;background:#211b10!important;color:var(--mine-gold-bright)!important;box-shadow:0 10px 25px rgba(0,0,0,.3)!important}
+.center-page{background:radial-gradient(circle at 50% 25%,rgba(226,184,79,.08),transparent 30%),var(--mine-bg);color:var(--mine-text)}.auth-card{border-color:var(--mine-line);border-radius:12px;background:var(--mine-panel);color:var(--mine-text)}.auth-card h1{color:var(--mine-text)}.auth-card svg{color:var(--mine-gold)}
+@media(max-width:760px){.nav{background:#0d0f0b;border-color:#3c321f;box-shadow:0 16px 32px rgba(0,0,0,.45)}.nav a{color:#c9c1b1}.app-page:not(.app-page-full){padding:22px 10px 54px}.app-hero{border-radius:10px!important}}
 .guild-page{padding:44px clamp(16px,6vw,96px) 80px;background:radial-gradient(circle at 82% 8%,rgba(36,207,114,.075),transparent 29%),#070c0a}.guild-page:before{display:none}
 .guild-hero,.guild-browser,.guild-panel,.guild-stat-grid,.guild-loading{border:1px solid #29483a!important;border-radius:0!important;background:linear-gradient(145deg,#101a16,#09110e)!important;box-shadow:0 18px 55px rgba(0,0,0,.32)!important;clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)!important}
 .guild-hero{min-height:145px;padding:25px 30px}.guild-hero h1{color:#eef4f0;text-shadow:none}.guild-browser>header,.guild-panel>header{border-bottom:1px solid #29483a;background:#0e1914}.guild-browser-columns,.guild-member-columns{border-bottom:1px solid #315340;background:#12231b;color:#8eaa9b;text-shadow:none}
@@ -4667,3 +4749,469 @@ html,body,#root,.site-shell{max-width:100%;overflow-x:hidden!important;overscrol
 @media(max-width:750px){.guild-stat-grid.guild-stat-grid-three{grid-template-columns:1fr}.guild-level-badge{width:100%;height:82px;grid-template-columns:auto 1fr auto}.guild-level-badge>b{grid-row:1/3}.guild-level-badge>i{grid-column:1/-1}}
 
 
+/* Guild-only shop */
+.guild-shop-backdrop {
+  z-index: 1100;
+  padding: 24px;
+}
+
+.guild-shop-modal {
+  position: relative;
+  width: min(1440px, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+  border: 1px solid var(--mine-line);
+  border-radius: 14px;
+  background: var(--mine-bg);
+  box-shadow: 0 30px 90px rgb(0 0 0 / 70%);
+}
+
+.guild-shop-page {
+  position: relative;
+  width: 100% !important;
+  min-height: 0 !important;
+  padding: 30px !important;
+  background:
+    radial-gradient(circle at 85% 0%, rgb(192 132 42 / 12%), transparent 34%),
+    var(--mine-bg) !important;
+}
+
+.guild-shop-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
+}
+
+.guild-shop-page .section-heading {
+  padding-right: 52px;
+}
+
+.guild-shop-page > .section-heading {
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.guild-shop-page > .section-heading h1 {
+  margin: 0;
+  font-size: clamp(25px, 3vw, 38px);
+}
+
+.guild-shop-page .shop-toolbar {
+  margin-bottom: 14px;
+  padding: 8px 10px;
+}
+
+.guild-shop-page .shop-tabs {
+  grid-template-columns: repeat(8, minmax(76px, 1fr));
+  gap: 4px;
+}
+
+.guild-shop-page .shop-tabs button {
+  min-height: 36px;
+  padding: 7px 8px;
+  font-size: 12px;
+}
+
+.guild-shop-page .shop-wallet .game-emblem {
+  width: 38px;
+  height: 38px;
+}
+
+.guild-shop-page .shop-wallet b {
+  font-size: 19px;
+}
+
+.guild-shop-page .shop-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.guild-shop-page .shop-card {
+  min-height: 0;
+  padding: 0 12px 12px !important;
+  border-radius: 10px !important;
+}
+
+.guild-shop-page .shop-card > .shop-preview {
+  width: calc(100% + 24px) !important;
+  height: 112px !important;
+  margin: 0 -12px 10px !important;
+}
+
+.guild-shop-page .shop-preview .game-emblem {
+  transform: scale(.78);
+}
+
+.guild-shop-page .shop-preview small {
+  margin-top: 3px;
+}
+
+.guild-shop-page .shop-card-copy h3 {
+  margin: 3px 0;
+  font-size: 18px;
+}
+
+.guild-shop-page .shop-card-copy p {
+  min-height: 30px;
+  margin: 0 0 8px;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.guild-shop-page .shop-card .btn {
+  min-height: 34px;
+  padding-block: 6px;
+}
+
+@media (max-width: 760px) {
+  .guild-shop-backdrop {
+    padding: 8px;
+  }
+
+  .guild-shop-modal {
+    width: 100%;
+    max-height: 96vh;
+  }
+
+  .guild-shop-page {
+    padding: 20px 14px !important;
+  }
+
+  .guild-shop-page .shop-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .guild-shop-page .shop-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .guild-shop-page .shop-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.guild-tag-note {
+  margin: -2px 0 4px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--mine-gold);
+  background: rgb(198 146 45 / 8%);
+  color: var(--mine-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.guild-hero-stats {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1.18fr .9fr 1fr;
+  gap: 0;
+  width: 430px;
+  min-height: 104px;
+  padding: 8px;
+  border: 1px solid #765c28;
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgb(242 191 73 / 8%), transparent 45%),
+    #11130d;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 218 123 / 4%),
+    inset 0 18px 38px rgb(255 193 59 / 3%),
+    0 10px 28px rgb(0 0 0 / 28%);
+}
+
+.guild-hero-stats article {
+  min-width: 0;
+  min-height: 86px;
+  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  border: 0;
+  border-right: 1px solid rgb(196 153 59 / 22%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.guild-hero-stats article:last-child {
+  border-right: 0;
+}
+
+.guild-hero-stats article > svg {
+  width: 21px;
+  flex: 0 0 auto;
+  color: var(--mine-gold);
+  filter: drop-shadow(0 0 7px rgb(226 175 64 / 22%));
+}
+
+.guild-hero-stats article > span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.guild-hero-stats article small {
+  color: #a79675;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+
+.guild-hero-stats article b {
+  margin-top: 6px;
+  color: #ffd76b;
+  font: 900 25px/.9 'Barlow Condensed', sans-serif;
+  white-space: nowrap;
+  text-shadow: 0 2px #5b330d, 0 0 12px rgb(255 198 68 / 15%);
+}
+
+.guild-hero-stats .guild-level-badge {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  width: auto;
+  height: auto;
+  padding-inline: 13px 15px;
+  border-right: 1px solid rgb(196 153 59 / 22%) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.guild-hero-stats .guild-level-badge > span {
+  grid-column: 1;
+  grid-row: 1;
+  color: #69dc91;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+}
+
+.guild-hero-stats .guild-level-badge > b {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: center;
+  justify-self: end;
+  color: #ffd76b;
+  font-size: 31px;
+}
+
+.guild-hero-stats .guild-level-badge > small {
+  grid-column: 1;
+  grid-row: 2;
+  margin-top: 7px;
+  font-size: 8px;
+}
+
+.guild-hero-stats .guild-level-badge > i {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  height: 5px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #070b08;
+}
+
+.guild-hero-stats .guild-level-badge > i em {
+  border-radius: inherit;
+  background: linear-gradient(90deg, #42cf7b, #a6ee80);
+  box-shadow: 0 0 9px #51df87;
+}
+
+.guild-editable-cell {
+  position: relative;
+  min-width: 0;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  padding-right: 30px;
+}
+
+.guild-editable-cell .guild-role,
+.guild-editable-cell .guild-title {
+  min-width: 0;
+}
+
+.guild-field-settings {
+  position: absolute;
+  top: 50%;
+  right: 3px;
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%) scale(.82);
+  border: 1px solid #735a27;
+  border-radius: 6px;
+  background: #201a0f;
+  color: #efbe51;
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transition: opacity .15s ease, transform .15s ease, border-color .15s ease;
+}
+
+.guild-field-settings svg {
+  width: 14px;
+  height: 14px;
+}
+
+.guild-editable-cell:hover .guild-field-settings,
+.guild-field-settings:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) scale(1);
+}
+
+.guild-field-settings:hover {
+  border-color: #d4a43e;
+  background: #2b2111;
+}
+
+.guild-member-editor {
+  width: min(500px, 96vw);
+  padding: 24px;
+}
+
+.guild-editor-heading {
+  padding-right: 50px;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.guild-editor-heading > svg {
+  width: 21px;
+  margin-top: 2px;
+  flex: 0 0 auto;
+  color: #58d98b;
+}
+
+.guild-editor-heading > div {
+  min-width: 0;
+}
+
+.guild-editor-heading span {
+  color: #5cdb8d;
+  font-size: 8px;
+  letter-spacing: 2px;
+}
+
+.guild-editor-heading h2 {
+  margin: 4px 0 0;
+  font-size: 29px;
+  line-height: 1;
+}
+
+.guild-editor-profile {
+  margin: 14px 0;
+  padding: 9px 11px;
+  overflow: hidden;
+  border: 1px solid #315b45;
+  background: #0a1a12;
+}
+
+.guild-editor-profile .player-identity {
+  min-width: 0;
+}
+
+.guild-member-editor .guild-title-picker {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 13px 0;
+}
+
+.guild-member-editor .guild-title-picker button {
+  min-height: 30px;
+  padding: 5px 7px;
+  border-radius: 6px !important;
+  font-size: 11px;
+  line-height: 1.15;
+}
+
+.guild-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 17px;
+  padding-top: 13px;
+  border-top: 1px solid #332d20;
+}
+
+.guild-editor-actions .btn {
+  width: auto;
+  min-height: 36px;
+  padding: 7px 15px;
+}
+
+.guild-editor-kick {
+  margin-top: 10px;
+  padding: 4px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  color: #b76c66;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.guild-editor-kick svg {
+  width: 13px;
+}
+
+@media (max-width: 520px) {
+  .guild-member-editor .guild-title-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (hover: none) {
+  .guild-field-settings {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+@media (max-width: 900px) {
+  .guild-hero {
+    flex-wrap: wrap;
+  }
+
+  .guild-hero-stats {
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .guild-hero-stats article {
+    min-height: 84px;
+  }
+}
+
+@media (max-width: 520px) {
+  .guild-hero-stats {
+    grid-template-columns: 1fr;
+    padding: 6px 14px;
+  }
+
+  .guild-hero-stats article {
+    min-height: 68px;
+    border-right: 0;
+    border-bottom: 1px solid rgb(196 153 59 / 22%);
+  }
+
+  .guild-hero-stats .guild-level-badge {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgb(196 153 59 / 22%) !important;
+  }
+}

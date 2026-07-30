@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   addDoc,
   collection,
@@ -378,7 +378,7 @@ export default function Room() {
 
   if (!room) {
     return (
-      <section className="room-entry room-lobby-page">
+      <section className="room-entry room-lobby-page app-page">
         <div className="room-lobby-head">
           <div>
             <span>LOBBY ONLINE</span>
@@ -587,7 +587,7 @@ export default function Room() {
 
   const isHost = profile.uid === room.hostId;
   return (
-    <section className="lobby-page">
+    <section className="lobby-page app-page">
       <div className="lobby-head">
         <div>
           <span>PHÒNG CHỜ · {room.visibility === 'public' ? 'CÔNG KHAI' : 'RIÊNG TƯ'}</span>
@@ -649,4 +649,3 @@ export default function Room() {
     </section>
   );
 }
-

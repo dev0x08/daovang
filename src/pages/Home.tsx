@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Home(){
  const{profile}=useAuth();
- return <section className="gateway-home">
+ return <section className="gateway-home app-page app-page-full">
   <div className="gateway-noise"/>
   <div className="gateway-light"/>
   <div className="gateway-copy">

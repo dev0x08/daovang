@@ -34,7 +34,7 @@ const pathCounts=[DECK_COUNTS.h,DECK_COUNTS.v,DECK_COUNTS.ne,DECK_COUNTS.nw,DECK
 const specials=[
  {icon:Hammer,name:'Phá sập hầm',text:'Chọn một mảnh làm tâm và phá cả các mảnh kề trên, dưới, trái, phải — tối đa 5 mảnh. Kỹ năng dùng một lần và không lộ danh tính Sói.'},
 ];
-export default function Guide(){return <section className="guide-page guide-full ui-v2-page">
+export default function Guide(){return <section className="guide-page guide-full ui-v2-page app-page">
  <div className="section-heading"><span>HƯỚNG DẪN ĐẦY ĐỦ</span><h1>CÁCH CHƠI BÍ ẨN ĐÀO VÀNG</h1><p>Toàn bộ luật trận đấu, vai trò, các loại lá bài, kỹ năng đặc biệt và điều kiện chiến thắng.</p></div>
  <div className="guide-overview">
   <article><GameEmblem icon={Users}/><b>6–8 NGƯỜI</b><p>Mỗi trận có người thật, AI hoặc kết hợp cả hai.</p></article>

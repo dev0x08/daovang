@@ -11,7 +11,6 @@ import {
   LogOut,
   Menu,
   Pickaxe,
-  ShoppingBag,
   Trophy,
   UserRound,
   Users,
@@ -58,7 +57,6 @@ export default function Layout() {
             <NavLink to="/">Trang chủ</NavLink>
             <NavLink to="/guide"><CircleHelp size={15} /> Hướng dẫn</NavLink>
             <NavLink to="/leaderboard"><Trophy size={15} /> Xếp hạng</NavLink>
-            <NavLink to="/shop"><ShoppingBag size={15} /> Cửa hàng</NavLink>
           </nav>
 
           <div className="account-area">

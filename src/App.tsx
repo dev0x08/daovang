@@ -13,7 +13,6 @@ const MatchHistory=lazy(()=>import('./pages/MatchHistory'));
 const Missions=lazy(()=>import('./pages/Missions'));
 const Profile=lazy(()=>import('./pages/Profile'));
 const Room=lazy(()=>import('./pages/Room'));
-const Shop=lazy(()=>import('./pages/Shop'));
 const Admin=lazy(()=>import('./pages/Admin'));
 
 const protect=(node:React.ReactNode)=><ProtectedRoute>{node}</ProtectedRoute>;
@@ -32,7 +31,6 @@ const router=createBrowserRouter([{
   {path:'friends',element:protect(page(<Friends/>))},
   {path:'guild',element:protect(page(<Guild/>))},
   {path:'guild/:guildId',element:protect(page(<Guild/>))},
-  {path:'shop',element:protect(page(<Shop/>))},
   {path:'missions',element:protect(page(<Missions/>))},
   {path:'history',element:protect(page(<MatchHistory/>))},
   {path:'leaderboard',element:page(<Leaderboard/>)},

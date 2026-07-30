@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
 import { ChevronRight, Crown, Flame, Medal, Shield, Sparkles, Star, Swords, Trophy, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -26,8 +26,8 @@ export default function Leaderboard(){
  useEffect(()=>{void listGuilds(100).then(setGuilds).catch(()=>setGuilds([]))},[]);
  const totalGames=useMemo(()=>data.reduce((sum,row)=>sum+row.gamesPlayed,0),[data]);
  const topThree=[data[1],data[0],data[2]].filter(Boolean);
- return <section className="ranking-page ranking-war-page">
-  <header className="rank-war-hero">
+ return <section className="ranking-page ranking-war-page app-page">
+  <header className="rank-war-hero app-hero">
    <div className="rank-war-scan"/><div className="rank-war-title"><span><Swords/> CHIẾN TUYẾN XẾP HẠNG</span><h1>ĐẠI SẢNH<br/><i>VINH DANH</i></h1><p>Những thợ mỏ xuất sắc nhất được khắc tên tại đây. Chiến thắng PvP, tích lũy sao và tiến tới ngôi vị Thách Đấu.</p></div>
    <div className="rank-season-card"><small>MÙA GIẢI HIỆN TẠI</small><b>SEASON 01</b><span><i/> ĐANG DIỄN RA</span></div>
   </header>
@@ -37,7 +37,7 @@ export default function Leaderboard(){
    <article><Crown/><span><small>ĐỈNH CAO</small><b>{data[0]?.rank||'—'}</b></span></article>
   </div>
   <nav className="rank-war-tabs"><button className={activeTab==='players'?'active':''} onClick={()=>setActiveTab('players')}><Users/> CÁ NHÂN MẠNH NHẤT</button><button className={activeTab==='guilds'?'active':''} onClick={()=>setActiveTab('guilds')}><Shield/> GUILD MẠNH NHẤT</button></nav>
-  {activeTab==='guilds'?<section className="guild-ranking-board"><header><span>GUILD POWER</span><h2>BẢNG XẾP HẠNG GUILD</h2></header>{guilds.length?<div>{guilds.map((guild,index)=><article key={guild.id}><strong>{String(index+1).padStart(2,'0')}</strong><span className="guild-rank-emblem"><Shield/></span><div><small>[{guild.tag}]</small><b>{guild.name}</b></div><span><Users/>{guild.memberCount} thành viên</span><span><Swords/>{guild.totalWarPoints} chiến tích</span><em><Sparkles/>{guild.power.toLocaleString('vi-VN')}</em></article>)}</div>:<div className="rank-war-loading"><Shield/><span>CHƯA CÓ GUILD NÀO GHI DANH</span></div>}</section>:loading?<div className="rank-war-loading"><Shield/><span>ĐANG KẾT NỐI CHIẾN TUYẾN...</span></div>:data.length===0?<div className="rank-war-loading"><Shield/><span>CHƯA CÓ CHIẾN BINH NÀO GHI DANH</span></div>:<>
+  {activeTab==='guilds'?<section className="guild-ranking-board"><header><span>GUILD POWER</span><h2>BẢNG XẾP HẠNG GUILD</h2></header>{guilds.length?<div>{guilds.map((guild,index)=><article key={guild.id}><strong>{String(index+1).padStart(2,'0')}</strong><span className="guild-rank-emblem"><Shield/></span><div>{guild.tag&&<small>[{guild.tag}]</small>}<b>{guild.name}</b></div><span><Users/>{guild.memberCount} thành viên</span><span><Swords/>{guild.totalWarPoints} chiến tích</span><em><Sparkles/>{guild.power.toLocaleString('vi-VN')}</em></article>)}</div>:<div className="rank-war-loading"><Shield/><span>CHƯA CÓ GUILD NÀO GHI DANH</span></div>}</section>:loading?<div className="rank-war-loading"><Shield/><span>ĐANG KẾT NỐI CHIẾN TUYẾN...</span></div>:data.length===0?<div className="rank-war-loading"><Shield/><span>CHƯA CÓ CHIẾN BINH NÀO GHI DANH</span></div>:<>
    <section className="rank-war-podium">
     <header><span>TOP COMMANDERS</span><h2>BA NGƯỜI DẪN ĐẦU</h2></header>
     <div className="rank-war-top-grid">{topThree.map(row=>{const actualIndex=data.indexOf(row),place=actualIndex+1,Icon=place===1?Crown:place===2?Medal:Trophy;return <Link to={profileUrl(row.displayName)} className={`rank-war-champion place-${place}`} key={row.uid}>
@@ -62,4 +62,3 @@ export default function Leaderboard(){
   </>}
  </section>;
 }
-

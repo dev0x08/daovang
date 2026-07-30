@@ -155,7 +155,8 @@ service cloud.firestore {
       allow create: if signedIn()
         && request.resource.data.ownerId == request.auth.uid
         && request.resource.data.name is string && request.resource.data.name.size() >= 3 && request.resource.data.name.size() <= 12
-        && request.resource.data.tag is string && request.resource.data.tag.size() >= 2 && request.resource.data.tag.size() <= 5
+        && request.resource.data.tag is string
+        && (request.resource.data.tag.size() == 0 || (request.resource.data.tag.size() >= 2 && request.resource.data.tag.size() <= 5))
         && request.resource.data.memberCount == 1
         && request.resource.data.totalContribution == 0
         && request.resource.data.totalWarPoints == 0
@@ -197,6 +198,16 @@ service cloud.firestore {
           ));
         allow update: if isAdmin() || (signedIn() && (
           (hasGuildRole(['owner']) && resource.data.role != 'owner')
+          || (hasGuildRole(['owner'])
+            && request.auth.uid == uid
+            && resource.data.role == 'owner'
+            && request.resource.data.role == 'officer'
+            && getAfter(/databases/$(database)/documents/guilds/$(guildId)).data.ownerId != uid)
+          || (hasGuildRole(['owner'])
+            && request.auth.uid == uid
+            && resource.data.role == 'owner'
+            && request.resource.data.role == 'owner'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title']))
           || (request.auth.uid == uid
             && request.resource.data.uid == resource.data.uid
             && request.resource.data.role == resource.data.role
