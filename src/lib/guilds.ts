@@ -14,20 +14,32 @@ import {
   updateDoc,
   writeBatch,
 } from 'firebase/firestore';
-import { Equipped, Profile } from '../context/AuthContext';
+import type { Equipped, Profile } from '../context/AuthContext';
 import { db } from './firebase';
 import { nameSlug } from './slugs';
 import { levelFromExp, rankFromPoints } from './progression';
+import { todayKey, weekKey } from './missions';
+import {
+  GUILD_MISSIONS,
+  GUILD_LEVEL_REWARDS,
+  GuildMissionMetric,
+  GuildMissionProgress,
+  advanceGuildLevel,
+  guildLevelConfig,
+  missionValue,
+} from './guildProgression';
 
 export type GuildRole='owner'|'officer'|'member';
 export type Guild={
-  id:string;name:string;slug:string;tag:string;description:string;announcement?:string;ownerId:string;ownerName?:string;
+  id:string;name:string;slug:string;tag:string;description:string;announcement?:string;badge?:string;ownerId:string;ownerName?:string;
   memberCount:number;totalContribution:number;totalWarPoints:number;power:number;treasury:number;
+  guildLevel:number;guildExp:number;lifetimeGuildExp:number;
   createdAt?:unknown;updatedAt?:unknown;
 };
 export type GuildMember={
   uid:string;displayName:string;photoURL:string;rank:string;equipped?:Equipped;
   role:GuildRole;title:string;contribution:number;warPoints:number;level?:number;joinedAt?:unknown;
+  missionProgress?:GuildMissionProgress;
 };
 export type GuildApplication=Omit<GuildMember,'role'|'title'|'contribution'|'warPoints'|'joinedAt'>&{message:string;createdAt?:unknown};
 export type GuildActivity={id:string;type:'guild'|'system';text:string;authorId:string;authorName:string;createdAt?:unknown};
@@ -37,15 +49,23 @@ const memberData=(profile:Pick<Profile,'uid'|'displayName'|'photoURL'|'rank'|'eq
   equipped:profile.equipped,role,title:role==='owner'?'Hội trưởng':'Thành viên',contribution:0,warPoints:0,
 });
 
+const normalizeGuild=(id:string,data:Record<string,unknown>):Guild=>({
+  ...data,
+  id,
+  guildLevel:Math.max(1,Math.min(5,Math.floor(Number(data.guildLevel)||1))),
+  guildExp:Math.max(0,Math.floor(Number(data.guildExp)||0)),
+  lifetimeGuildExp:Math.max(0,Math.floor(Number(data.lifetimeGuildExp)||0)),
+} as Guild);
+
 export async function listGuilds(max=50):Promise<Guild[]>{
   if(!db)return[];
   const snap=await getDocs(query(collection(db,'guilds'),orderBy('power','desc'),limit(max)));
-  return snap.docs.map(item=>({id:item.id,...item.data()} as Guild));
+  return snap.docs.map(item=>normalizeGuild(item.id,item.data()));
 }
 
 export async function getGuild(guildId:string):Promise<Guild|null>{
   if(!db)return null;const snap=await getDoc(doc(db,'guilds',guildId));
-  return snap.exists()?{id:snap.id,...snap.data()} as Guild:null;
+  return snap.exists()?normalizeGuild(snap.id,snap.data()):null;
 }
 
 export async function findMyGuild(uid:string):Promise<{guild:Guild;member:GuildMember}|null>{
@@ -74,7 +94,7 @@ export async function createGuild(profile:Profile,name:string,description:string
     const exp=Math.max(0,Number(userData?.exp||0)),coins=Math.max(0,Number(userData?.coins||0));
     if(exp<700)throw new Error('Cần đạt cấp 5 để thành lập guild.');
     if(coins<5000)throw new Error('Cần 5.000 vàng để thành lập guild.');
-    transaction.set(guildRef,{name:safeName,slug,tag:'',description:safeDescription,ownerId:profile.uid,ownerName:profile.displayName,memberCount:1,totalContribution:0,totalWarPoints:0,power:0,treasury:5000,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+    transaction.set(guildRef,{name:safeName,slug,tag:'',description:safeDescription,ownerId:profile.uid,ownerName:profile.displayName,memberCount:1,totalContribution:5000,totalWarPoints:0,power:0,treasury:5000,guildLevel:1,guildExp:0,lifetimeGuildExp:0,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
     transaction.set(nameRef,{guildId:guildRef.id,name:safeName,ownerId:profile.uid,createdAt:serverTimestamp()});
     transaction.set(doc(guildRef,'members',profile.uid),{...memberData(profile,'owner'),joinedAt:serverTimestamp()});
     transaction.update(userRef,{coins:coins-5000});
@@ -132,6 +152,11 @@ export async function addGuildMember(guildId:string,player:GuildApplication|Pick
   if(await findMyGuild(player.uid))throw new Error('Người chơi này đã thuộc một guild khác.');
   const memberRef=doc(db,'guilds',guildId,'members',player.uid);
   if((await getDoc(memberRef)).exists())return;
+  const guildSnap=await getDoc(doc(db,'guilds',guildId));
+  if(!guildSnap.exists())throw new Error('Guild không còn tồn tại.');
+  const guildLevel=Math.max(1,Number(guildSnap.data().guildLevel||1));
+  const memberLimit=guildLevelConfig(guildLevel).memberLimit;
+  if(Number(guildSnap.data().memberCount||0)>=memberLimit)throw new Error(`Guild Lv.${guildLevel} chỉ có tối đa ${memberLimit} thành viên.`);
   const batch=writeBatch(db);
   batch.set(memberRef,{uid:player.uid,displayName:player.displayName,photoURL:player.photoURL,rank:player.rank,equipped:player.equipped||{},role:'member',title:'Thành viên',contribution:0,warPoints:0,joinedAt:serverTimestamp()});
   batch.delete(doc(db,'guilds',guildId,'applications',player.uid));
@@ -171,6 +196,11 @@ export async function updateGuildAnnouncement(guildId:string,announcement:string
   await updateDoc(doc(db,'guilds',guildId),{announcement:announcement.trim().slice(0,240),updatedAt:serverTimestamp()});
 }
 
+export async function updateGuildBadge(guildId:string,badge:string){
+  if(!db)return;
+  await updateDoc(doc(db,'guilds',guildId),{badge:badge.trim().slice(0,40),updatedAt:serverTimestamp()});
+}
+
 export async function contributeToGuild(guildId:string,uid:string,type:'contribution'|'war'|'service'){
   if(!db)return;
   const contribution=type==='war'?0:type==='service'?15:10,warPoints=type==='war'?20:0;
@@ -180,19 +210,95 @@ export async function contributeToGuild(guildId:string,uid:string,type:'contribu
   await batch.commit();
 }
 
+const freshMissionProgress=(value:GuildMissionProgress|undefined):GuildMissionProgress=>{
+  const day=todayKey(),week=weekKey();
+  return{
+    dailyKey:day,
+    weeklyKey:week,
+    daily:value?.dailyKey===day?{...(value.daily||{})}:{},
+    weekly:value?.weeklyKey===week?{...(value.weekly||{})}:{},
+    claimedDaily:value?.dailyKey===day?[...(value.claimedDaily||[])]:[],
+    claimedWeekly:value?.weeklyKey===week?[...(value.claimedWeekly||[])]:[],
+  };
+};
+
+const guildExpPatch=(data:Record<string,unknown>,points:number,treasuryDeposit=0)=>{
+  const currentLevel=Math.max(1,Number(data.guildLevel||1));
+  const currentExp=Math.max(0,Number(data.guildExp||0));
+  const next=advanceGuildLevel(currentLevel,currentExp,points);
+  const levelRewardCoins=next.levelsGained.reduce((sum,level)=>sum+(GUILD_LEVEL_REWARDS[level]?.treasuryCoins||0),0);
+  return{
+    guildLevel:next.level,
+    guildExp:next.exp,
+    lifetimeGuildExp:Math.max(0,Number(data.lifetimeGuildExp||0))+points,
+    power:Math.max(0,Number(data.power||0))+points,
+    treasury:Math.max(0,Number(data.treasury||0))+Math.max(0,treasuryDeposit)+levelRewardCoins,
+    updatedAt:serverTimestamp(),
+  };
+};
+
+export async function recordGuildMemberEvent(uid:string,eventId:string,metric:GuildMissionMetric,points:number,amount=1){
+  if(!db||points<1)return null;
+  const mine=await findMyGuild(uid);
+  if(!mine)return null;
+  const guildRef=doc(db,'guilds',mine.guild.id),memberRef=doc(guildRef,'members',uid);
+  const safeEventId=(eventId+'_'+uid).replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,180);
+  const eventRef=doc(guildRef,'contributionEvents',safeEventId);
+  return runTransaction(db,async transaction=>{
+    const[eventSnap,guildSnap,memberSnap]=await Promise.all([transaction.get(eventRef),transaction.get(guildRef),transaction.get(memberRef)]);
+    if(eventSnap.exists()||!guildSnap.exists()||!memberSnap.exists())return null;
+    const progress=freshMissionProgress(memberSnap.data().missionProgress as GuildMissionProgress|undefined);
+    const dailyBefore=Math.max(0,Number(progress.daily?.[metric]||0));
+    const awardedPoints=metric==='games'&&dailyBefore>=5?0:metric==='wins'&&dailyBefore>=5?0:metric==='login'&&amount>0&&dailyBefore>=1?0:points;
+    progress.daily={...progress.daily,[metric]:Math.max(0,Number(progress.daily?.[metric]||0))+amount};
+    progress.weekly={...progress.weekly,[metric]:Math.max(0,Number(progress.weekly?.[metric]||0))+amount};
+    transaction.set(eventRef,{uid,metric,points:awardedPoints,amount,createdAt:serverTimestamp()});
+    transaction.update(memberRef,{contribution:increment(awardedPoints),missionProgress:progress});
+    if(awardedPoints>0)transaction.update(guildRef,guildExpPatch(guildSnap.data(),awardedPoints));
+    return{guildId:mine.guild.id,points:awardedPoints};
+  });
+}
+
+export async function claimGuildMission(guildId:string,uid:string,missionId:string){
+  if(!db)throw new Error('Firebase chưa sẵn sàng.');
+  const mission=GUILD_MISSIONS.find(item=>item.id===missionId);
+  if(!mission)throw new Error('Nhiệm vụ Guild không tồn tại.');
+  const guildRef=doc(db,'guilds',guildId),memberRef=doc(guildRef,'members',uid);
+  return runTransaction(db,async transaction=>{
+    const[guildSnap,memberSnap]=await Promise.all([transaction.get(guildRef),transaction.get(memberRef)]);
+    if(!guildSnap.exists()||!memberSnap.exists())throw new Error('Bạn không còn thuộc Guild này.');
+    const progress=freshMissionProgress(memberSnap.data().missionProgress as GuildMissionProgress|undefined);
+    const claimed=mission.period==='daily'?progress.claimedDaily!:progress.claimedWeekly!;
+    if(claimed.includes(mission.id))return false;
+    if(missionValue(progress,mission)<mission.target)throw new Error('Nhiệm vụ Guild chưa hoàn thành.');
+    claimed.push(mission.id);
+    transaction.update(memberRef,{contribution:increment(mission.reward),missionProgress:progress});
+    transaction.update(guildRef,guildExpPatch(guildSnap.data(),mission.reward));
+    return true;
+  });
+}
+
 export async function depositGuildFunds(guildId:string,uid:string,amount:number):Promise<number>{
   if(!db)throw new Error('Firebase chưa sẵn sàng.');
   const safeAmount=Math.floor(amount);
+  if(safeAmount%100!==0)throw new Error('Số vàng đóng góp phải là bội số của 100.');
   if(safeAmount<1||safeAmount>100000)throw new Error('Số vàng nạp không hợp lệ.');
-  const userRef=doc(db,'users',uid),guildRef=doc(db,'guilds',guildId);
+  const userRef=doc(db,'users',uid),guildRef=doc(db,'guilds',guildId),memberRef=doc(guildRef,'members',uid);
   return runTransaction(db,async transaction=>{
-    const[userSnap,guildSnap]=await Promise.all([transaction.get(userRef),transaction.get(guildRef)]);
+    const[userSnap,guildSnap,memberSnap]=await Promise.all([transaction.get(userRef),transaction.get(guildRef),transaction.get(memberRef)]);
+    if(!memberSnap.exists())throw new Error('Bạn không còn thuộc Guild này.');
     if(!guildSnap.exists())throw new Error('Guild không còn tồn tại.');
     const coins=Math.max(0,Number(userSnap.data()?.coins||0));
+    const progress=freshMissionProgress(memberSnap.data().missionProgress as GuildMissionProgress|undefined);
+    const contributedToday=Math.max(0,Number(progress.daily?.gold||0));
+    const pointableGold=Math.max(0,Math.min(safeAmount,1000-contributedToday));
+    const earnedPoints=Math.floor(pointableGold/100)*10;
+    progress.daily={...progress.daily,gold:contributedToday+safeAmount};
+    progress.weekly={...progress.weekly,gold:Math.max(0,Number(progress.weekly?.gold||0))+safeAmount};
     if(coins<safeAmount)throw new Error('Bạn không đủ vàng.');
     transaction.update(userRef,{coins:coins-safeAmount});
-    transaction.update(guildRef,{treasury:increment(safeAmount),totalContribution:increment(safeAmount),power:increment(safeAmount),updatedAt:serverTimestamp()});
-    transaction.update(doc(guildRef,'members',uid),{contribution:increment(safeAmount)});
+    transaction.update(guildRef,{totalContribution:increment(safeAmount),...guildExpPatch(guildSnap.data(),earnedPoints,safeAmount)});
+    transaction.update(memberRef,{contribution:increment(earnedPoints),missionProgress:progress});
     return coins-safeAmount;
   });
 }

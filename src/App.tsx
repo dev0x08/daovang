@@ -6,6 +6,7 @@ const Game=lazy(()=>import('./pages/Game'));
 const Friends=lazy(()=>import('./pages/Friends'));
 const Guide=lazy(()=>import('./pages/Guide'));
 const Guild=lazy(()=>import('./pages/Guild'));
+const GuildShop=lazy(()=>import('./pages/GuildShop'));
 const Home=lazy(()=>import('./pages/Home'));
 const Leaderboard=lazy(()=>import('./pages/Leaderboard'));
 const Login=lazy(()=>import('./pages/Login'));
@@ -31,6 +32,7 @@ const router=createBrowserRouter([{
   {path:'friends',element:protect(page(<Friends/>))},
   {path:'guild',element:protect(page(<Guild/>))},
   {path:'guild/:guildId',element:protect(page(<Guild/>))},
+  {path:'guild/:guildId/shop',element:protect(page(<GuildShop/>))},
   {path:'missions',element:protect(page(<Missions/>))},
   {path:'history',element:protect(page(<MatchHistory/>))},
   {path:'leaderboard',element:page(<Leaderboard/>)},

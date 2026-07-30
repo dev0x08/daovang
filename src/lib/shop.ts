@@ -9,8 +9,6 @@ export const SHOP_ITEMS:ShopItem[]=[
  {id:'piece-crystal',name:'Quân Pha Lê',description:'Quân cờ pha lê xanh bí ẩn.',category:'pieceSkin',price:950,preview:'◇'},
  {id:'frame-gold',name:'Khung Vàng Cổ',description:'Khung avatar ánh vàng cổ điển.',category:'frame',price:450,preview:'◆'},
  {id:'frame-wolf',name:'Khung Sói Đêm',description:'Khung avatar đỏ tối dành cho hồ sơ.',category:'frame',price:700,preview:'◈'},
- {id:'name-emerald',name:'Tên Lục Bảo',description:'Màu tên xanh lục bảo.',category:'nameColor',price:350,preview:'Aa'},
- {id:'name-amber',name:'Tên Hổ Phách',description:'Màu tên vàng hổ phách.',category:'nameColor',price:350,preview:'Aa'},
  {id:'plate-ocean',name:'Nền Biển Sâu',description:'Nền bảng tên xanh lam phát sáng.',category:'nameplate',price:520,preview:'▰'},
  {id:'plate-crimson',name:'Nền Sói Đỏ',description:'Nền bảng tên đỏ sẫm dành cho phong cách bí ẩn.',category:'nameplate',price:680,preview:'▰'},
  {id:'plate-royal',name:'Nền Hoàng Kim',description:'Nền bảng tên vàng sang trọng.',category:'nameplate',price:850,preview:'▰'},
@@ -22,6 +20,19 @@ export const SHOP_ITEMS:ShopItem[]=[
  {id:'title-abyss',name:'Chúa Tể Vực Sâu',description:'Danh hiệu bóng tối với ánh bạc ẩn hiện.',category:'title',price:1250,preview:'T'},
  {id:'badge-compass',name:'Huy hiệu La Bàn',description:'Huy hiệu trang trí hồ sơ.',category:'badge',price:300,preview:'✦'},
  {id:'badge-gem',name:'Huy hiệu Đá Quý',description:'Huy hiệu đá quý hiếm.',category:'badge',price:550,preview:'♦'},
+ {id:'frame-square-cyan',name:'Khung Vuông Lam',description:'Khung vuông vát cạnh với đường sáng xanh và đinh tán hầm mỏ.',category:'frame',price:620,preview:'□'},
+ {id:'frame-hex-wolf',name:'Khung Lục Giác Sói',description:'Khung lục giác tím với huy hiệu sói canh giữ kho báu.',category:'frame',price:880,preview:'⬡'},
+ {id:'frame-octagon-royal',name:'Khung Bát Giác Hoàng Gia',description:'Khung bát giác đỏ vàng dành cho thủ lĩnh guild.',category:'frame',price:1100,preview:'⯃'},
+ {id:'name-rainbow',name:'Tên Cầu Vồng',description:'Bảy sắc chuyển động liên tục, rực rỡ và lung linh.',category:'nameColor',price:1500,preview:'Aa'},
+ {id:'name-dragon-gold',name:'Tên Vàng Rồng',description:'Gradient hoàng kim sang trọng với ánh sáng vảy rồng.',category:'nameColor',price:1050,preview:'Aa'},
+ {id:'name-blue-flame',name:'Tên Lửa Xanh',description:'Sắc xanh tím ma mị chuyển động như ngọn lửa trong hầm.',category:'nameColor',price:1350,preview:'Aa'},
+ {id:'name-frost',name:'Tên Băng Giá',description:'Xanh băng pha trắng cùng ánh lạnh tinh khiết.',category:'nameColor',price:980,preview:'Aa'},
+ {id:'name-blood-shadow',name:'Tên Huyết Ảnh',description:'Đỏ đen nguy hiểm với bóng máu chớp theo nhịp.',category:'nameColor',price:1250,preview:'Aa'},
+ {id:'plate-forest',name:'Nền Rừng Ngọc',description:'Rừng ngầm xanh lục với cổ thụ và tinh thể phát sáng.',category:'nameplate',price:760,preview:'▰'},
+ {id:'plate-phantom',name:'Nền Thành Ma',description:'Bóng thành cổ dưới trăng tím dành cho kẻ thám hiểm bí ẩn.',category:'nameplate',price:920,preview:'▰'},
+ {id:'badge-crown',name:'Huy hiệu Vương Miện',description:'Biểu tượng hoàng gia dành cho guild dẫn đầu.',category:'badge',price:900,preview:'♛'},
+ {id:'badge-pickaxe',name:'Huy hiệu Thợ Mỏ',description:'Cuốc vàng đại diện cho guild khai phá kho báu.',category:'badge',price:650,preview:'⛏'},
+ {id:'badge-guardian',name:'Huy hiệu Hộ Vệ',description:'Khiên lục bảo dành cho guild đoàn kết và bền bỉ.',category:'badge',price:780,preview:'⬟'},
 ];
 export const itemById=(id?:string|null)=>SHOP_ITEMS.find(x=>x.id===id);
 export const cosmeticClass=(id?:string|null)=>id?`cosmetic-${id}`:'';

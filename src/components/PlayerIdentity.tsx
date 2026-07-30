@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Bot, Crown, Shield, UserRound } from 'lucide-react';
+import { Bot, Crown, UserRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Equipped } from '../context/AuthContext';
 import { itemById } from '../lib/shop';
@@ -34,10 +34,8 @@ export default function PlayerIdentity({ player, compact=false, active=false, su
     <div className={`player-identity ${compact?'is-compact':''} ${active?'is-active':''} ${cosmeticClass(equipped.nameplate)} ${className}`}>
       {profileUrl?<Link to={profileUrl} className={`identity-avatar identity-profile-link ${cosmeticClass(equipped.frame)}`} aria-label={`Xem hồ sơ ${player.name}`}>
         {player.bot ? <Bot aria-hidden="true"/> : avatar ? <img src={avatar} alt=""/> : <UserRound aria-hidden="true"/>}
-        {equipped.badge && <i className={`identity-badge ${cosmeticClass(equipped.badge)}`}><Shield aria-hidden="true"/></i>}
       </Link>:<span className={`identity-avatar ${cosmeticClass(equipped.frame)}`}>
         {player.bot ? <Bot aria-hidden="true"/> : avatar ? <img src={avatar} alt=""/> : <UserRound aria-hidden="true"/>}
-        {equipped.badge && <i className={`identity-badge ${cosmeticClass(equipped.badge)}`}><Shield aria-hidden="true"/></i>}
       </span>}
       {profileUrl?<Link to={profileUrl} className="identity-copy identity-profile-link" aria-label={`Xem hồ sơ ${player.name}`}>
         <b className={cosmeticClass(equipped.nameColor)}>{player.name}</b>

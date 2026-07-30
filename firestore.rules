@@ -138,7 +138,7 @@ service cloud.firestore {
         && likeId == request.resource.data.matchId + '_' + request.auth.uid
         && exists(/databases/$(database)/documents/matches/$(request.resource.data.matchId))
         && request.auth.uid in get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.participantIds
-        && request.resource.data.receiverId in get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.participantIds;
+        && request.resource.data.receiverId in get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.participantIds);
       allow update, delete: if false;
     }
 
@@ -158,16 +158,19 @@ service cloud.firestore {
         && request.resource.data.tag is string
         && (request.resource.data.tag.size() == 0 || (request.resource.data.tag.size() >= 2 && request.resource.data.tag.size() <= 5))
         && request.resource.data.memberCount == 1
-        && request.resource.data.totalContribution == 0
+        && request.resource.data.totalContribution == 5000
         && request.resource.data.totalWarPoints == 0
         && request.resource.data.power == 0
         && request.resource.data.treasury == 5000
+        && request.resource.data.guildLevel == 1
+        && request.resource.data.guildExp == 0
+        && request.resource.data.lifetimeGuildExp == 0
         && request.resource.data.slug == guildId
         && getAfter(/databases/$(database)/documents/guildNames/$(guildId)).data.guildId == guildId
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.exp >= 700
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coins >= 5000
         && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.coins
-          == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coins - 5000);
+          == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coins - 5000;
       allow update: if isAdmin() || hasGuildRole(['owner'])
         || (hasGuildRole(['officer'])
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['announcement','updatedAt'])
@@ -179,11 +182,17 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount','updatedAt'])
           && request.resource.data.memberCount == resource.data.memberCount - 1)
         || (hasGuildRole(['member','officer'])
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['treasury','totalContribution','totalWarPoints','power','updatedAt'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['treasury','totalContribution','totalWarPoints','power','guildLevel','guildExp','lifetimeGuildExp','updatedAt'])
           && request.resource.data.treasury >= resource.data.treasury
           && request.resource.data.totalContribution >= resource.data.totalContribution
           && request.resource.data.totalWarPoints >= resource.data.totalWarPoints
-          && request.resource.data.power >= resource.data.power);
+          && request.resource.data.power >= resource.data.power
+          && (!resource.data.keys().hasAll(['guildLevel']) || request.resource.data.guildLevel >= resource.data.guildLevel)
+          && request.resource.data.guildLevel <= 5
+          && request.resource.data.guildExp >= 0
+          && (!resource.data.keys().hasAll(['lifetimeGuildExp'])
+            || (request.resource.data.lifetimeGuildExp >= resource.data.lifetimeGuildExp
+              && request.resource.data.lifetimeGuildExp <= resource.data.lifetimeGuildExp + 100)));
       allow delete: if isAdmin() || hasGuildRole(['owner']);
 
       match /members/{uid} {
@@ -197,17 +206,7 @@ service cloud.firestore {
             || (hasGuildRole(['owner','officer']) && request.resource.data.role == 'member')
           ));
         allow update: if isAdmin() || (signedIn() && (
-          (hasGuildRole(['owner']) && resource.data.role != 'owner')
-          || (hasGuildRole(['owner'])
-            && request.auth.uid == uid
-            && resource.data.role == 'owner'
-            && request.resource.data.role == 'officer'
-            && getAfter(/databases/$(database)/documents/guilds/$(guildId)).data.ownerId != uid)
-          || (hasGuildRole(['owner'])
-            && request.auth.uid == uid
-            && resource.data.role == 'owner'
-            && request.resource.data.role == 'owner'
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title']))
+          hasGuildRole(['owner'])
           || (request.auth.uid == uid
             && request.resource.data.uid == resource.data.uid
             && request.resource.data.role == resource.data.role
@@ -249,6 +248,20 @@ service cloud.firestore {
           && request.resource.data.createdAt == request.time;
         allow update: if false;
         allow delete: if isAdmin() || hasGuildRole(['owner','officer']);
+      }
+
+      match /contributionEvents/{eventId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.metric in ['login','games','wins','thanks','gold']
+          && request.resource.data.points is int
+          && request.resource.data.points >= 0
+          && request.resource.data.points <= 100
+          && request.resource.data.amount is int
+          && request.resource.data.amount >= 0
+          && request.resource.data.createdAt == request.time;
+        allow update, delete: if false;
       }
 
       match /payouts/{uid} {
