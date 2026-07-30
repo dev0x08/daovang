@@ -12,7 +12,7 @@ export type ExternalPoint = { side:MapSide; row?:number; col?:number };
 export type ObjectivePoint = ExternalPoint & { id:string; label:string };
 export type MapConfig = { id:string; name:string; theme:'mine'|'ocean'|'tomb'; rows:number; cols:number; entrance:ExternalPoint; objectives:ObjectivePoint[]; cardSet:string; obstacleCount:number; obstacleMinCol:number; obstacleMaxCol:number };
 export type Treasure = { id:string; revealed:boolean; isGold:boolean; peekedBy:string[] };
-export type GameState = { matchId:string; map:MapConfig; board:Cell[][]; obstacles:string[]; players:Player[]; treasures:Treasure[]; deck:Card[]; discardPile:Card[]; turn:number; logs:string[]; winner:null|'miners'|'wolves'; turns:number };
+export type GameState = { matchId:string; map:MapConfig; board:Cell[][]; obstacles:string[]; players:Player[]; treasures:Treasure[]; deck:Card[]; discardPile:Card[]; turn:number; logs:string[]; winner:null|'miners'|'wolves'; turns:number; rewardPool?:{exp:number;coins:number} };
 
 export const GOLD_MINE_MAP:MapConfig={
  id:'gold-mine',name:'Mỏ Vàng Bị Lãng Quên',theme:'mine',rows:5,cols:12,
@@ -46,9 +46,13 @@ export const DECK_TOTAL=PATH_CARD_TOTAL+ACTION_CARD_TOTAL;
 export const createDeck=()=>{const deck:Card[]=[];(Object.keys(DECK_COUNTS) as Array<PathKind|ActionKind>).forEach(kind=>add(deck,kind,DECK_COUNTS[kind]));return shuffle(deck)};
 const draw=(deck:Card[],n:number)=>deck.splice(0,Math.min(n,deck.length));
 
-export const dirs=(kind:PathKind,rotation=0):Direction[]=>{const base:Record<PathKind,Direction[]>={h:['L','R'],v:['U','D'],ne:['D','L'],nw:['D','R'],se:['U','L'],sw:['U','R'],tUp:['L','R','U'],tDown:['L','R','D'],tLeft:['U','D','L'],tRight:['U','D','R'],cross:['U','R','D','L'],crossDead:['U','R','D','L'],nwDead:['D'],seDead:['U'],swDead:['U'],collapse:['L']};const turns=((rotation%360)+360)%360/90;const order:Direction[]=['U','R','D','L'];return base[kind].map(d=>order[(order.indexOf(d)+turns)%4])};
+export const dirs=(kind:PathKind,rotation=0):Direction[]=>{const base:Record<PathKind,Direction[]>={h:['L','R'],v:['U','D'],ne:['U','R'],nw:['U','L'],se:['D','R'],sw:['D','L'],tUp:['L','R','U'],tDown:['L','R','D'],tLeft:['U','D','L'],tRight:['U','D','R'],cross:['U','R','D','L'],crossDead:['U','R','D','L'],nwDead:['D'],seDead:['U'],swDead:['U'],collapse:['L']};const turns=((rotation%360)+360)%360/90;const order:Direction[]=['U','R','D','L'];return base[kind].map(d=>order[(order.indexOf(d)+turns)%4])};
 export const isDeadPath=(kind:PathKind)=>kind==='crossDead'||kind==='nwDead'||kind==='seDead'||kind==='swDead'||kind==='collapse';
 const opposite:Record<Direction,Direction>={L:'R',R:'L',U:'D',D:'U'};
+export const DIRECTION_NAMES:Record<Direction,string>={U:'Trên',R:'Phải',D:'Dưới',L:'Trái'};
+export const pathDirectionsText=(card:Pick<Card,'type'|'kind'|'rotation'>)=>card.type==='path'
+ ? dirs(card.kind as PathKind,card.rotation).map(direction=>DIRECTION_NAMES[direction]).join(' · ')
+ : '';
 const directionName:Record<Direction,string>={L:'trái',R:'phải',U:'trên',D:'dưới'};
 const delta:Record<Direction,[number,number]>={L:[0,-1],R:[0,1],U:[-1,0],D:[1,0]};
 const inBoard=(m:MapConfig,r:number,c:number)=>r>=0&&r<m.rows&&c>=0&&c<m.cols;
@@ -60,6 +64,55 @@ const hasGeometricRoute=(map:MapConfig,obstacles:Set<string>)=>{const[sr,sc]=ent
 export const generateObstacles=(map:MapConfig)=>{const candidates:Array<[number,number]>=[];for(let r=0;r<map.rows;r++)for(let c=map.obstacleMinCol;c<=Math.min(map.obstacleMaxCol,map.cols-1);c++)candidates.push([r,c]);for(let attempt=0;attempt<300;attempt++){const picked:Array<[number,number]>=[];for(const spot of shuffle(candidates)){if(picked.length>=map.obstacleCount)break;if(picked.every(([r,c])=>Math.abs(r-spot[0])+Math.abs(c-spot[1])>1))picked.push(spot)}const set=new Set(picked.map(([r,c])=>key(r,c)));if(picked.length===map.obstacleCount&&hasGeometricRoute(map,set))return [...set]}return [key(0,3),key(2,6),key(4,9)]};
 
 export const reachableFromEntrance=(board:Cell[][],map:MapConfig=GOLD_MINE_MAP):Set<string>=>{const reachable=new Set<string>();const[sr,sc,sd]=entranceCell(map);const start=board[sr]?.[sc];if(!start?.card||start.card.type!=='path'||!dirs(start.card.kind as PathKind,start.card.rotation).includes(sd))return reachable;const q:Array<[number,number,Direction]>=[[sr,sc,sd]],seen=new Set([`${key(sr,sc)}:${sd}`]);while(q.length){const[r,c,enteredFrom]=q.shift()!,cell=board[r][c];if(!cell?.card||cell.card.type!=='path')continue;const kind=cell.card.kind as PathKind;reachable.add(key(r,c));if(isDeadPath(kind))continue;for(const d of dirs(kind,cell.card.rotation)){if(d===enteredFrom)continue;const[dr,dc]=delta[d],nr=r+dr,nc=c+dc;if(!inBoard(map,nr,nc))continue;const n=board[nr][nc],entry=opposite[d],stateKey=`${key(nr,nc)}:${entry}`;if(n?.card.type==='path'&&dirs(n.card.kind as PathKind,n.card.rotation).includes(entry)&&!seen.has(stateKey)){seen.add(stateKey);q.push([nr,nc,entry])}}}return reachable};
+
+export const longestTreasureRoute=(board:Cell[][],map:MapConfig=GOLD_MINE_MAP):Set<string>=>{
+ const[sr,sc,sd]=entranceCell(map),start=board[sr]?.[sc];
+ if(!start?.card||start.card.type!=='path'||!dirs(start.card.kind as PathKind,start.card.rotation).includes(sd))return new Set();
+ const startKey=key(sr,sc),queue:Array<[number,number]>=[[sr,sc]],distance=new Map([[startKey,0]]),parent=new Map<string,string>();
+ while(queue.length){
+  const[r,c]=queue.shift()!,cell=board[r]?.[c];
+  if(!cell?.card||cell.card.type!=='path'||isDeadPath(cell.card.kind as PathKind))continue;
+  for(const d of dirs(cell.card.kind as PathKind,cell.card.rotation)){
+   const[dr,dc]=delta[d],nr=r+dr,nc=c+dc;
+   if(!inBoard(map,nr,nc))continue;
+   const neighbor=board[nr]?.[nc],nextKey=key(nr,nc);
+   if(!neighbor?.card||neighbor.card.type!=='path'||distance.has(nextKey))continue;
+   if(!dirs(neighbor.card.kind as PathKind,neighbor.card.rotation).includes(opposite[d]))continue;
+   distance.set(nextKey,(distance.get(key(r,c))||0)+1);
+   parent.set(nextKey,key(r,c));
+   queue.push([nr,nc]);
+  }
+ }
+ let target:string|null=null,targetDistance=Infinity;
+ for(const objective of map.objectives){
+  const[r,c,d]=objectiveCell(map,objective),targetKey=key(r,c),cell=board[r]?.[c],steps=distance.get(targetKey);
+  if(steps===undefined||!cell?.card||cell.card.type!=='path')continue;
+  if(!dirs(cell.card.kind as PathKind,cell.card.rotation).includes(d))continue;
+  // Khi nhiều rương đã nối được, phát sáng tuyến ngắn nhất từ cửa hầm.
+  if(steps<targetDistance){target=targetKey;targetDistance=steps}
+ }
+ // Nếu chưa chạm rương, chọn đúng một đầu tuyến gần rương nhất. Khi nhiều
+ // đầu tuyến gần như nhau, ưu tiên tuyến dài hơn tính từ cửa hầm.
+ if(!target){
+  let nearestTreasure=Infinity;
+  targetDistance=-1;
+  for(const[position,steps]of distance){
+   const[r,c]=position.split(',').map(Number);
+   const treasureDistance=Math.min(...map.objectives.map(objective=>{
+    const[tr,tc]=objectiveCell(map,objective);
+    return Math.abs(r-tr)+Math.abs(c-tc);
+   }));
+   if(treasureDistance<nearestTreasure||(treasureDistance===nearestTreasure&&steps>targetDistance)){
+    target=position;
+    targetDistance=steps;
+    nearestTreasure=treasureDistance;
+   }
+  }
+ }
+ const route=new Set<string>();
+ while(target){route.add(target);target=parent.get(target)||null}
+ return route;
+};
 
 const externalOpeningAllowed=(map:MapConfig,row:number,col:number,d:Direction)=>{const[eR,eC,eD]=entranceCell(map);if(row===eR&&col===eC&&d===eD)return true;return map.objectives.some(o=>{const[or,oc,od]=objectiveCell(map,o);return row===or&&col===oc&&d===od});};
 export const isValidPlacement=(board:Cell[][],card:Card,row:number,col:number,map:MapConfig=GOLD_MINE_MAP,obstacles:string[]=[])=>{
@@ -85,18 +138,15 @@ export const isValidPlacement=(board:Cell[][],card:Card,row:number,col:number,ma
   if(neighbor.card.type!=='path')return false;
 
   const neighborOpens=dirs(neighbor.card.kind as PathKind,neighbor.card.rotation).includes(opposite[d]);
-  // Hai ô kề nhau phải khớp tuyệt đối: cùng mở hoặc cùng đóng ở cạnh tiếp xúc.
-  if(opens!==neighborOpens)return false;
+  // Cửa mở của mảnh mới bắt buộc phải có cửa đối diện. Một nhánh thừa từ
+  // mảnh cũ không được tính là kết nối, nhưng cũng không khóa ô đặt hợp lệ.
+  if(opens&&!neighborOpens)return false;
   if(opens&&neighborOpens)hasConnectedOpening=true;
 
  }
 
- // Khớp hình học là chưa đủ: sau khi một lá gốc bị phá, cụm đường cô lập
- // không được phép tiếp tục phát triển như thể nó vẫn nối với cửa hầm.
  if(!hasConnectedOpening&&!connectedToEntrance)return false;
- const trial=board.map(line=>line.slice());
- trial[row][col]={card,owner:'placement-check'};
- return reachableFromEntrance(trial,map).has(key(row,col));
+ return true;
 };
 
 export const placementReason=(board:Cell[][],card:Card,row:number,col:number,map:MapConfig=GOLD_MINE_MAP,obstacles:string[]=[])=>{
@@ -119,13 +169,11 @@ export const placementReason=(board:Cell[][],card:Card,row:number,col:number,map
   if(!neighbor?.card)continue;
   if(neighbor.card.type!=='path')return 'Ô kế bên không phải mảnh đường.';
   const neighborOpens=dirs(neighbor.card.kind as PathKind,neighbor.card.rotation).includes(opposite[d]);
-  if(opens!==neighborOpens)return `Cạnh ${directionName[d]} không khớp với mảnh kế bên.`;
+  if(opens&&!neighborOpens)return `Cạnh ${directionName[d]} không khớp với mảnh kế bên.`;
   if(opens&&neighborOpens)hasConnectedOpening=true;
  }
  if(!hasConnectedOpening&&!connectedToEntrance)return 'Mảnh phải nối bằng ít nhất một cửa mở với đường đã có.';
- const trial=board.map(line=>line.slice());
- trial[row][col]={card,owner:'placement-check'};
- return reachableFromEntrance(trial,map).has(key(row,col))?'Hợp lệ.':'Mảnh phải thuộc tuyến đường đang nối trực tiếp với Cửa hầm.';
+ return 'Hợp lệ.';
 };
 
 const refill=(s:GameState,p:Player)=>{if(s.deck.length)p.hand.push(...draw(s.deck,1))};
@@ -135,7 +183,7 @@ const playerBase=(id:string,name:string,role:Role,isBot:boolean,avatar:string,ha
 
 const randomIndex=(length:number)=>{if(length<=1)return 0;if(typeof crypto!=='undefined'&&'getRandomValues' in crypto){const values=new Uint32Array(1),limit=Math.floor(0x100000000/length)*length;do crypto.getRandomValues(values);while(values[0]>=limit);return values[0]%length}return Math.floor(Math.random()*length)};
 export const createTreasures=(map:MapConfig):Treasure[]=>{const goldIndex=randomIndex(map.objectives.length);return map.objectives.map((o,i)=>({id:o.id,revealed:false,isGold:i===goldIndex,peekedBy:[]}))};
-export const newGame=(humanName='Bạn',botCount=5,map=GOLD_MINE_MAP):GameState=>{const total=Math.max(6,Math.min(8,botCount+1)),actualBots=total-1,deck=createDeck(),names=['Digger Bot','Luna','Búa Sắt','Mắt Đỏ','Râu Vàng','Đá Xám','Mỏ Neo'],roles=shuffle([...Array(total-2).fill('miner'),...Array(2).fill('wolf')]) as Role[];const wolfIndexes=roles.map((r,i)=>r==='wolf'?i:-1).filter(i=>i>=0);const saboteurIndex=wolfIndexes[Math.floor(Math.random()*wolfIndexes.length)];const players=[playerBase('human',humanName,roles[0],false,'human',draw(deck,6),saboteurIndex===0),...Array.from({length:actualBots},(_,i)=>playerBase(`bot-${i}`,names[i]||`AI ${i+1}`,roles[i+1],true,`bot-${i}`,draw(deck,6),saboteurIndex===i+1))];const firstTurn=Math.floor(Math.random()*players.length);return{matchId:`match-${Date.now()}-${uid()}`,map,board:Array.from({length:map.rows},()=>Array<Cell>(map.cols).fill(null)),obstacles:generateObstacles(map),players,treasures:createTreasures(map),deck,discardPile:[],turn:firstTurn,logs:[`Người đi đầu tiên: ${players[firstTurn].name}.`,'Trận đấu đã bắt đầu.'],winner:null,turns:0}};
+export const newGame=(humanName='Bạn',botCount=5,map=GOLD_MINE_MAP):GameState=>{const total=Math.max(6,Math.min(8,botCount+1)),actualBots=total-1,deck=createDeck(),names=['Digger Bot','Luna','Búa Sắt','Mắt Đỏ','Râu Vàng','Đá Xám','Mỏ Neo'],roles=shuffle([...Array(total-2).fill('miner'),...Array(2).fill('wolf')]) as Role[];const wolfIndexes=roles.map((r,i)=>r==='wolf'?i:-1).filter(i=>i>=0);const saboteurIndex=wolfIndexes[Math.floor(Math.random()*wolfIndexes.length)];const players=[playerBase('human',humanName,roles[0],false,'human',draw(deck,6),saboteurIndex===0),...Array.from({length:actualBots},(_,i)=>playerBase(`bot-${i}`,names[i]||`AI ${i+1}`,roles[i+1],true,`bot-${i}`,draw(deck,6),saboteurIndex===i+1))];const firstTurn=Math.floor(Math.random()*players.length);return{matchId:`match-${Date.now()}-${uid()}`,map,board:Array.from({length:map.rows},()=>Array<Cell>(map.cols).fill(null)),obstacles:generateObstacles(map),players,treasures:createTreasures(map),deck,discardPile:[],turn:firstTurn,logs:[`Người đi đầu tiên: ${players[firstTurn].name}.`,'Trận đấu đã bắt đầu.'],winner:null,turns:0,rewardPool:{exp:200,coins:500}}};
 export const newRoomGame=(roomId:string,roomPlayers:Array<{uid:string;name:string;avatar?:string;bot?:boolean;rank?:string;equipped?:Record<string,string|undefined>}>,map=GOLD_MINE_MAP):GameState=>{
  const base=newGame(roomPlayers[0]?.name||'Bạn',Math.max(5,roomPlayers.length-1),map);
  base.matchId=`room-${roomId}`;

@@ -4,6 +4,8 @@ import {
   CircleHelp,
   Coins,
   Gift,
+  Shield,
+  ShieldAlert,
   History,
   LogIn,
   LogOut,
@@ -18,6 +20,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { cosmeticClass } from '../lib/shop';
+import { ADMIN_UID } from '../lib/slugs';
 
 export default function Layout() {
   const [open, setOpen] = useState(false);
@@ -95,8 +98,10 @@ export default function Layout() {
                       <div className="user-dropdown-links">
                         <Link to="/profile" role="menuitem"><UserRound size={17} /><span><b>Hồ sơ</b><small>Thông tin và thành tích</small></span></Link>
                         <Link to="/friends" role="menuitem"><Users size={17} /><span><b>Bạn bè</b><small>Kết bạn và lời mời phòng</small></span></Link>
+                        <Link to="/guild" role="menuitem"><Shield size={17} /><span><b>Guild</b><small>Guild chiến và cống hiến</small></span></Link>
                         <Link to="/missions" role="menuitem"><Gift size={17} /><span><b>Nhiệm vụ</b><small>Nhận thưởng mỗi ngày</small></span></Link>
                         <Link to="/history" role="menuitem"><History size={17} /><span><b>Lịch sử</b><small>Xem lại các trận đấu</small></span></Link>
+                        {profile.uid===ADMIN_UID&&<Link to="/admin" role="menuitem"><ShieldAlert size={17}/><span><b>Quản trị</b><small>Phòng, guild và người dùng</small></span></Link>}
                       </div>
                       <button type="button" className="user-logout" onClick={logout} role="menuitem">
                         <LogOut size={17} /> Đăng xuất

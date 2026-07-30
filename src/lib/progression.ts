@@ -76,6 +76,4 @@ export const RANK_REWARDS:RankReward[]=[
 export const unlockedRankRewards=(before:number,after:number,claimed:string[])=>RANK_REWARDS.filter(reward=>!claimed.includes(reward.tierId)&&before<RANK_TIERS.find(tier=>tier.id===reward.tierId)!.min&&after>=RANK_TIERS.find(tier=>tier.id===reward.tierId)!.min);
 
 export type MatchReward={exp:number;coins:number};
-export const MATCH_REWARD_RANGES={win:{exp:[48,86] as const,coins:[65,125] as const},loss:{exp:[20,42] as const,coins:[24,58] as const}} as const;
-const randomInt=(min:number,max:number)=>Math.floor(Math.random()*(max-min+1))+min;
-export const rollMatchReward=(won:boolean,score=0):MatchReward=>{const range=won?MATCH_REWARD_RANGES.win:MATCH_REWARD_RANGES.loss,contribution=Math.min(10,Math.max(0,Math.floor(score/2)));return{exp:randomInt(range.exp[0],range.exp[1])+contribution,coins:randomInt(range.coins[0],range.coins[1])+contribution}};
+export const MATCH_CHEST_REWARD:MatchReward={exp:200,coins:500};

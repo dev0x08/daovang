@@ -82,15 +82,6 @@ export const timeoutTurn=(match:OnlineMatch,now=Date.now()):OnlineMatch=>{
   next={...next,state:advanced};
   next.state.logs[0]=`${player.name} hết ${TURN_MS/1000} giây — hệ thống tự bỏ một lá ngẫu nhiên.`;
  }
- if(player&&!player.isBot){
-  const count=(next.autoDiscardCounts[player.id]||0)+1;
-  next.autoDiscardCounts[player.id]=count;
-  next.state.logs[0]=`${next.state.logs[0]} (${count}/3)`;
-  if(count>=3&&next.presence[player.id]){
-   next.presence[player.id]={...next.presence[player.id],status:'left',disconnectDeadline:null,lastSeen:now};
-   next.state.logs.unshift(`${player.name} đã bị mời khỏi phòng vì tự động bỏ lượt 3 lần.`);
-  }
- }
  if(!next.state.winner&&next.presence[next.state.players[next.state.turn].id]?.status==='left')next.state.turn=nextActiveTurn(next,next.state.turn);
  next.turnStartedAt=now;
  next.turnDeadline=now+TURN_MS;

@@ -3,6 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+    function isAdmin() { return signedIn() && request.auth.uid == '6DRn3nbz4xZzoZJi6agyYsiAE7n2'; }
     function validRoomShape(data) {
       return data.code is string && data.code.size() == 6
         && data.name is string && data.name.size() >= 3 && data.name.size() <= 40
@@ -17,6 +18,7 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if signedIn();
       allow create: if isSelf(uid)
+        && !exists(/databases/$(database)/documents/bannedUsers/$(uid))
         && request.resource.data.uid == uid
         && request.resource.data.coins == 500
         && request.resource.data.exp == 0
@@ -26,7 +28,7 @@ service cloud.firestore {
         && request.resource.data.gamesPlayed == 0;
       // This blocks edits to identity ownership and rejects impossible/negative values.
       // Economy is still client-driven in this prototype; production rewards should move to Cloud Functions.
-      allow update: if isSelf(uid)
+      allow update: if isAdmin() || (isSelf(uid)
         && request.resource.data.uid == resource.data.uid
         && request.resource.data.email == resource.data.email
         && request.resource.data.coins is int && request.resource.data.coins >= 0 && request.resource.data.coins <= 1000000
@@ -37,10 +39,10 @@ service cloud.firestore {
         && request.resource.data.losses is int && request.resource.data.losses >= 0
         && request.resource.data.gamesPlayed == request.resource.data.wins + request.resource.data.losses
         && request.resource.data.onlineSecondsToday is int && request.resource.data.onlineSecondsToday >= 0 && request.resource.data.onlineSecondsToday <= 86400
-        && request.resource.data.dailyChats is int && request.resource.data.dailyChats >= 0 && request.resource.data.dailyChats <= 500;
-      allow delete: if false;
+        && request.resource.data.dailyChats is int && request.resource.data.dailyChats >= 0 && request.resource.data.dailyChats <= 500);
+      allow delete: if isAdmin() && uid != request.auth.uid;
       match /friendRequests/{fromUid} {
-        allow read: if signedIn() && (request.auth.uid == uid || request.auth.uid == fromUid);
+        allow read: if isAdmin() || (signedIn() && (request.auth.uid == uid || request.auth.uid == fromUid));
         allow create: if signedIn()
           && request.auth.uid == fromUid
           && fromUid != uid
@@ -55,7 +57,7 @@ service cloud.firestore {
           && request.resource.data.equipped is map
           && request.resource.data.createdAt == request.time;
         allow update: if false;
-        allow delete: if signedIn() && (request.auth.uid == uid || request.auth.uid == fromUid);
+        allow delete: if isAdmin() || (signedIn() && (request.auth.uid == uid || request.auth.uid == fromUid));
       }
       match /friends/{friendUid} {
         allow read: if signedIn() && (request.auth.uid == uid || request.auth.uid == friendUid);
@@ -76,7 +78,7 @@ service cloud.firestore {
               && exists(/databases/$(database)/documents/users/$(friendUid)/friendRequests/$(uid)))
           );
         allow update: if signedIn() && request.auth.uid == uid;
-        allow delete: if signedIn() && (request.auth.uid == uid || request.auth.uid == friendUid);
+        allow delete: if isAdmin() || (signedIn() && (request.auth.uid == uid || request.auth.uid == friendUid));
       }
       match /roomInvites/{roomId} {
         allow read: if signedIn() && (request.auth.uid == uid || request.auth.uid == resource.data.fromUid);
@@ -89,11 +91,11 @@ service cloud.firestore {
           && request.resource.data.fromName is string
           && request.resource.data.fromPhotoURL is string
           && request.resource.data.createdAt == request.time;
-        allow delete: if signedIn() && (request.auth.uid == uid || request.auth.uid == resource.data.fromUid);
+        allow delete: if isAdmin() || (signedIn() && (request.auth.uid == uid || request.auth.uid == resource.data.fromUid));
       }
-      match /matchHistory/{matchId} { allow read: if isSelf(uid); allow create: if isSelf(uid) && request.resource.data.matchId == matchId; allow update, delete: if false; }
+      match /matchHistory/{matchId} { allow read: if isSelf(uid) || isAdmin(); allow create: if isSelf(uid) && request.resource.data.matchId == matchId; allow update: if false; allow delete: if isAdmin(); }
       match /completedMatches/{matchId} {
-        allow read: if isSelf(uid);
+        allow read: if isSelf(uid) || isAdmin();
         allow create: if isSelf(uid)
           && !exists(/databases/$(database)/documents/users/$(uid)/completedMatches/$(matchId))
           && request.resource.data.won is bool
@@ -101,11 +103,159 @@ service cloud.firestore {
           && request.resource.data.reward.coins is int
           && request.resource.data.reward.exp >= 0 && request.resource.data.reward.exp <= 500
           && request.resource.data.reward.coins >= 0 && request.resource.data.reward.coins <= 500;
-        allow update, delete: if false;
+        allow update: if false;
+        allow delete: if isAdmin();
       }
     }
 
+    match /bannedUsers/{uid} {
+      allow read: if isAdmin() || isSelf(uid);
+      allow create, update, delete: if isAdmin() && uid != request.auth.uid;
+    }
+
+    match /guildNames/{slug} {
+      allow read: if signedIn();
+      allow create: if isAdmin() || (signedIn()
+        && request.resource.data.guildId == slug
+        && request.resource.data.ownerId == request.auth.uid
+        && getAfter(/databases/$(database)/documents/guilds/$(slug)).data.ownerId == request.auth.uid);
+      allow update: if isAdmin();
+      allow delete: if isAdmin()
+        || (signedIn() && get(/databases/$(database)/documents/guilds/$(resource.data.guildId)).data.ownerId == request.auth.uid);
+    }
+
     match /reports/{reportId} { allow create: if signedIn() && request.resource.data.reporterUid == request.auth.uid && request.resource.data.reason in ['AFK','Spam','Tên phản cảm','Phá game','Nghi gian lận']; allow read, update, delete: if false; }
+
+    match /likes/{likeId} {
+      allow read: if signedIn();
+      allow create: if isAdmin() || (signedIn()
+        && request.resource.data.keys().hasOnly(['giverId','receiverId','matchId','createdAt'])
+        && request.resource.data.giverId == request.auth.uid
+        && request.resource.data.receiverId is string
+        && request.resource.data.receiverId != request.auth.uid
+        && request.resource.data.matchId is string
+        && request.resource.data.createdAt == request.time
+        && likeId == request.resource.data.matchId + '_' + request.auth.uid
+        && exists(/databases/$(database)/documents/matches/$(request.resource.data.matchId))
+        && request.auth.uid in get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.participantIds
+        && request.resource.data.receiverId in get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.participantIds;
+      allow update, delete: if false;
+    }
+
+    match /guilds/{guildId} {
+      function guildMember(uid) {
+        return get(/databases/$(database)/documents/guilds/$(guildId)/members/$(uid));
+      }
+      function hasGuildRole(roles) {
+        return signedIn()
+          && exists(/databases/$(database)/documents/guilds/$(guildId)/members/$(request.auth.uid))
+          && guildMember(request.auth.uid).data.role in roles;
+      }
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.name is string && request.resource.data.name.size() >= 3 && request.resource.data.name.size() <= 12
+        && request.resource.data.tag is string && request.resource.data.tag.size() >= 2 && request.resource.data.tag.size() <= 5
+        && request.resource.data.memberCount == 1
+        && request.resource.data.totalContribution == 0
+        && request.resource.data.totalWarPoints == 0
+        && request.resource.data.power == 0
+        && request.resource.data.treasury == 5000
+        && request.resource.data.slug == guildId
+        && getAfter(/databases/$(database)/documents/guildNames/$(guildId)).data.guildId == guildId
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.exp >= 700
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coins >= 5000
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.coins
+          == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coins - 5000);
+      allow update: if isAdmin() || hasGuildRole(['owner'])
+        || (hasGuildRole(['officer'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['announcement','updatedAt'])
+          && request.resource.data.announcement is string
+          && request.resource.data.announcement.size() <= 240)
+        || (hasGuildRole(['officer'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount','updatedAt']))
+        || (hasGuildRole(['member','officer'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount','updatedAt'])
+          && request.resource.data.memberCount == resource.data.memberCount - 1)
+        || (hasGuildRole(['member','officer'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['treasury','totalContribution','totalWarPoints','power','updatedAt'])
+          && request.resource.data.treasury >= resource.data.treasury
+          && request.resource.data.totalContribution >= resource.data.totalContribution
+          && request.resource.data.totalWarPoints >= resource.data.totalWarPoints
+          && request.resource.data.power >= resource.data.power);
+      allow delete: if isAdmin() || hasGuildRole(['owner']);
+
+      match /members/{uid} {
+        allow read: if signedIn();
+        allow create: if isAdmin() || (signedIn()
+          && request.resource.data.uid == uid
+          && (
+            (request.auth.uid == uid
+              && request.resource.data.role == 'owner'
+              && getAfter(/databases/$(database)/documents/guilds/$(guildId)).data.ownerId == uid)
+            || (hasGuildRole(['owner','officer']) && request.resource.data.role == 'member')
+          ));
+        allow update: if isAdmin() || (signedIn() && (
+          (hasGuildRole(['owner']) && resource.data.role != 'owner')
+          || (request.auth.uid == uid
+            && request.resource.data.uid == resource.data.uid
+            && request.resource.data.role == resource.data.role
+            && request.resource.data.title == resource.data.title
+            && request.resource.data.contribution >= resource.data.contribution
+            && request.resource.data.warPoints >= resource.data.warPoints)
+        ));
+        allow delete: if isAdmin() || (signedIn() && (
+          (resource.data.role != 'owner' && (hasGuildRole(['owner']) || request.auth.uid == uid))
+          || (resource.data.role == 'owner'
+            && request.auth.uid == uid
+            && !existsAfter(/databases/$(database)/documents/guilds/$(guildId)))
+        ));
+      }
+
+      match /applications/{uid} {
+        allow read: if isAdmin() || (signedIn() && (request.auth.uid == uid || hasGuildRole(['owner','officer'])));
+        allow create: if signedIn()
+          && request.auth.uid == uid
+          && request.resource.data.uid == uid
+          && request.resource.data.displayName is string
+          && request.resource.data.message is string
+          && request.resource.data.message.size() <= 120;
+        allow update: if false;
+        allow delete: if isAdmin() || (signedIn() && (request.auth.uid == uid || hasGuildRole(['owner','officer'])));
+      }
+
+      match /activities/{activityId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+          && exists(/databases/$(database)/documents/guilds/$(guildId)/members/$(request.auth.uid))
+          && request.resource.data.keys().hasOnly(['type','text','authorId','authorName','createdAt'])
+          && request.resource.data.type in ['guild','system']
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 240
+          && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.authorName is string
+          && request.resource.data.createdAt == request.time;
+        allow update: if false;
+        allow delete: if isAdmin() || hasGuildRole(['owner','officer']);
+      }
+
+      match /payouts/{uid} {
+        allow read: if isAdmin() || (signedIn() && request.auth.uid == uid) || hasGuildRole(['owner']);
+        allow create, update: if hasGuildRole(['owner'])
+          && request.resource.data.uid == uid
+          && request.resource.data.amount is int
+          && request.resource.data.amount > 0
+          && request.resource.data.createdAt == request.time;
+        allow delete: if isAdmin() || hasGuildRole(['owner'])
+          || (signedIn()
+            && request.auth.uid == uid
+            && getAfter(/databases/$(database)/documents/users/$(uid)).data.coins
+              > get(/databases/$(database)/documents/users/$(uid)).data.coins
+            && getAfter(/databases/$(database)/documents/users/$(uid)).data.coins
+              <= get(/databases/$(database)/documents/users/$(uid)).data.coins + resource.data.amount);
+      }
+    }
 
     match /matches/{matchId} {
       allow create: if signedIn()
@@ -143,7 +293,7 @@ service cloud.firestore {
           || (resource.data.status == 'waiting' && request.resource.data.status == 'waiting'
               && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players']))
         );
-      allow delete: if signedIn() && request.auth.uid == resource.data.hostId;
+      allow delete: if isAdmin() || (signedIn() && request.auth.uid == resource.data.hostId);
 
       match /messages/{messageId} {
         allow read: if signedIn();
@@ -157,7 +307,8 @@ service cloud.firestore {
           && request.resource.data.text.size() > 0
           && request.resource.data.text.size() <= 300
           && request.resource.data.createdAt == request.time;
-        allow update, delete: if false;
+        allow update: if false;
+        allow delete: if isAdmin();
       }
     }
   }

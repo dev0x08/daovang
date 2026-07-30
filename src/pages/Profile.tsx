@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { Award, BadgeCheck, Check, Coins, Crown, Gauge, PackageOpen, Pickaxe, ShieldAlert, Swords, UserMinus, UserPlus, X } from 'lucide-react';
-import { doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, limit, query } from 'firebase/firestore';
 import { useParams } from 'react-router-dom';
 import { Profile as ProfileData, useAuth } from '../context/AuthContext';
 import { db } from '../lib/firebase';
@@ -9,6 +9,7 @@ import { MISSIONS } from '../lib/missions';
 import { cosmeticClass, itemById, SHOP_ITEMS, ShopCategory } from '../lib/shop';
 import { acceptFriendRequest, cancelFriendRequest, friendshipStatus, FriendshipStatus, removeFriend, sendFriendRequest, summaryOf } from '../lib/friends';
 import CosmeticPreview from '../components/CosmeticPreview';
+import { nameSlug } from '../lib/slugs';
 
 const categoryName:Record<ShopCategory,string>={frame:'Khung hồ sơ',nameColor:'Màu tên',nameplate:'Nền bảng tên',title:'Danh xưng',badge:'Huy hiệu',boardSkin:'Skin bàn cờ',pieceSkin:'Skin quân cờ'};
 type InventoryFilter='all'|ShopCategory;
@@ -20,11 +21,11 @@ const publicProfile=(uid:string,data:Record<string,unknown>):ProfileData=>{
 };
 
 export default function Profile(){
- const{uid}=useParams();const{profile,login,equipItem,unequipItem}=useAuth();const[msg,setMsg]=useState('');const[remote,setRemote]=useState<ProfileData|null>(null);const[loading,setLoading]=useState(false);const[notFound,setNotFound]=useState(false);const[relation,setRelation]=useState<FriendshipStatus>('none');
+ const{name}=useParams();const{profile,login,equipItem,unequipItem}=useAuth();const[msg,setMsg]=useState('');const[remote,setRemote]=useState<ProfileData|null>(null);const[loading,setLoading]=useState(false);const[notFound,setNotFound]=useState(false);const[relation,setRelation]=useState<FriendshipStatus>('none');
  const[inventoryFilter,setInventoryFilter]=useState<InventoryFilter>('all');
- const ownProfile=!uid||uid===profile?.uid;
- useEffect(()=>{if(ownProfile){setRemote(null);setNotFound(false);return}if(!uid||!db)return;let active=true;setLoading(true);setNotFound(false);void getDoc(doc(db,'users',uid)).then(snapshot=>{if(!active)return;if(!snapshot.exists()){setNotFound(true);setRemote(null)}else setRemote(publicProfile(snapshot.id,snapshot.data()))}).catch(()=>{if(active)setNotFound(true)}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[uid,ownProfile]);
- useEffect(()=>{if(!profile||!uid||ownProfile){setRelation('none');return}let active=true;void friendshipStatus(profile.uid,uid).then(status=>{if(active)setRelation(status)});return()=>{active=false}},[profile?.uid,uid,ownProfile]);
+ const ownProfile=!name||nameSlug(profile?.displayName||'')===name;
+ useEffect(()=>{if(ownProfile){setRemote(null);setNotFound(false);return}if(!name||!db)return;let active=true;setLoading(true);setNotFound(false);void getDocs(query(collection(db,'users'),limit(500))).then(snapshot=>{if(!active)return;const match=snapshot.docs.find(item=>nameSlug(String(item.data().displayName||''))===name);if(!match){setNotFound(true);setRemote(null)}else setRemote(publicProfile(match.id,match.data()))}).catch(()=>{if(active)setNotFound(true)}).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[name,ownProfile]);
+ useEffect(()=>{if(!profile||!remote||ownProfile){setRelation('none');return}let active=true;void friendshipStatus(profile.uid,remote.uid).then(status=>{if(active)setRelation(status)});return()=>{active=false}},[profile?.uid,remote?.uid,ownProfile]);
  if(!profile)return <section className="center-page"><button className="btn btn-primary" onClick={login}>ĐĂNG NHẬP GOOGLE</button></section>;
  if(loading)return <section className="center-page"><div className="auth-card"><Pickaxe className="spin-slow"/><h1>ĐANG TẢI HỒ SƠ</h1></div></section>;
  if(notFound||(!ownProfile&&!remote))return <section className="center-page"><div className="auth-card"><ShieldAlert/><h1>KHÔNG TÌM THẤY HỒ SƠ</h1><p>Người chơi này không tồn tại hoặc hồ sơ không còn khả dụng.</p></div></section>;

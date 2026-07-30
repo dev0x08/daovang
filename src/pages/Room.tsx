@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import {
   addDoc,
   collection,
@@ -42,6 +42,7 @@ import { db } from '../lib/firebase';
 import { GOLD_MINE_MAP, newRoomGame } from '../lib/game';
 import { createPresence, encodeOnlineMatch, TURN_MS } from '../lib/onlineMatch';
 import { dismissRoomInvite, FriendSummary, inviteFriendToRoom, watchFriends } from '../lib/friends';
+import { profileUrl } from '../lib/slugs';
 
 type Player = {
   uid: string;
@@ -84,6 +85,14 @@ type Room = {
 
 const ROOM_CODE_CHARS='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const makeCode=()=>{const bytes=new Uint8Array(6);crypto.getRandomValues(bytes);return Array.from(bytes,b=>ROOM_CODE_CHARS[b%ROOM_CODE_CHARS.length]).join('')};
+const RANDOM_ROOM_NAMES=[
+  'Hội Thợ Mỏ Vàng',
+  'Đường Hầm Bí Mật',
+  'Biệt Đội Săn Kho Báu',
+  'Hang Sâu Không Lối Thoát',
+  'Chuyến Tàu Xuống Lòng Đất',
+] as const;
+const randomRoomName=()=>RANDOM_ROOM_NAMES[Math.floor(Math.random()*RANDOM_ROOM_NAMES.length)];
 
 async function hashPassword(value: string): Promise<string> {
   const bytes = new TextEncoder().encode(value);
@@ -107,7 +116,7 @@ export default function Room() {
   const [showCreate, setShowCreate] = useState(params.get('create') === '1');
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
   const [roomMode, setRoomMode] = useState<'online' | 'ai'>('online');
-  const [roomName, setRoomName] = useState('');
+  const [roomName, setRoomName] = useState<string>(randomRoomName);
   const [createPassword, setCreatePassword] = useState('');
   const [joinPassword, setJoinPassword] = useState('');
   const [pendingRoom, setPendingRoom] = useState<Room | null>(null);
@@ -116,10 +125,6 @@ export default function Room() {
   const [showFriendInvite, setShowFriendInvite] = useState(false);
   const [friends, setFriends] = useState<FriendSummary[]>([]);
   const [invitedFriends, setInvitedFriends] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (profile && !roomName) setRoomName(`Phòng của ${profile.displayName}`);
-  }, [profile, roomName]);
 
   useEffect(()=>{if(!profile||!db||room)return;const roomId=localStorage.getItem(`active-room:${profile.uid}`);if(!roomId)return;let cancelled=false;(async()=>{try{const snap=await getDoc(doc(db!,'rooms',roomId));if(!snap.exists()){localStorage.removeItem(`active-room:${profile.uid}`);return}const restored={id:snap.id,...snap.data()} as Room;if(restored.players.some(player=>player.uid===profile.uid)&&!cancelled)setRoom(restored);else localStorage.removeItem(`active-room:${profile.uid}`)}catch{}})();return()=>{cancelled=true}},[profile?.uid,room]);
 
@@ -378,30 +383,9 @@ export default function Room() {
           <div>
             <span>LOBBY ONLINE</span>
             <h1>TÌM PHÒNG ĐANG CHỜ</h1>
-            <p>Phòng công khai vào ngay. Phòng riêng tư yêu cầu đúng mật khẩu.</p>
           </div>
-          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
+          <button className="btn btn-primary" onClick={() => { setRoomName(randomRoomName()); setShowCreate(true); }}>
             <Plus /> TẠO PHÒNG MỚI
-          </button>
-        </div>
-
-        <div className="room-quick-join panel">
-          <div className="quick-join-copy">
-            <Search />
-            <div>
-              <b>THAM GIA BẰNG MÃ PHÒNG</b>
-              <small>Mã phòng gồm 6 ký tự. Mật khẩu sẽ được hỏi nếu đó là phòng riêng tư.</small>
-            </div>
-          </div>
-          <input
-            value={input}
-            onChange={(event) => setInput(event.target.value.toUpperCase())}
-            onKeyDown={(event) => event.key === 'Enter' && void joinByCode()}
-            maxLength={6}
-            placeholder="VD: A7K92X"
-          />
-          <button onClick={() => void joinByCode()} className="btn btn-primary">
-            VÀO PHÒNG
           </button>
         </div>
 
@@ -414,9 +398,25 @@ export default function Room() {
                 <small>{waitingRooms.length} phòng có thể tham gia</small>
               </div>
             </div>
-            <div className="room-type-legend">
-              <span><Globe2 /> Công khai</span>
-              <span><LockKeyhole /> Riêng tư</span>
+            <div className="room-list-tools">
+              <div className="room-type-legend">
+                <span><Globe2 /> Công khai</span>
+                <span><LockKeyhole /> Riêng tư</span>
+              </div>
+              <div className="room-code-join">
+                <Search aria-hidden="true" />
+                <input
+                  value={input}
+                  onChange={(event) => setInput(event.target.value.toUpperCase())}
+                  onKeyDown={(event) => event.key === 'Enter' && void joinByCode()}
+                  maxLength={6}
+                  aria-label="Mã phòng"
+                  placeholder="MÃ PHÒNG"
+                />
+                <button onClick={() => void joinByCode()} className="btn btn-primary">
+                  VÀO PHÒNG
+                </button>
+              </div>
             </div>
           </header>
 
@@ -501,12 +501,10 @@ export default function Room() {
                 <button className={roomMode === 'online' ? 'active' : ''} onClick={() => setRoomMode('online')}>
                   <Users />
                   <b>PHÒNG ONLINE</b>
-                  <small>Chờ người chơi tham gia và có thể thêm AI sau.</small>
                 </button>
                 <button className={roomMode === 'ai' ? 'active' : ''} onClick={() => {setRoomMode('ai');setCreatePassword('')}}>
                   <Bot />
                   <b>CHƠI VỚI AI</b>
-                  <small>Tự động thêm 5 AI và sẵn sàng bắt đầu ngay.</small>
                 </button>
               </div>
 
@@ -520,7 +518,6 @@ export default function Room() {
                 >
                   <Globe2 />
                   <b>CÔNG KHAI</b>
-                  <small>Hiện trong lobby và không cần mật khẩu.</small>
                 </button>
                 <button
                   className={visibility === 'private' ? 'active' : ''}
@@ -528,7 +525,6 @@ export default function Room() {
                 >
                   <LockKeyhole />
                   <b>RIÊNG TƯ</b>
-                  <small>Hiện trong lobby nhưng bắt buộc nhập mật khẩu.</small>
                 </button>
               </div>}
 
@@ -623,7 +619,7 @@ export default function Room() {
               <div className="lobby-player" key={player.uid}>
                 <PlayerIdentity
                   player={player}
-                  profileUrl={player.bot?undefined:`/profile/${player.uid}`}
+                  profileUrl={player.bot?undefined:profileUrl(player.name)}
                   subtitle={player.uid === room.hostId ? 'CHỦ PHÒNG' : player.bot ? 'AI' : 'NGƯỜI CHƠI'}
                   trailing={<><em>{player.ready ? 'SẴN SÀNG' : 'ĐANG CHỜ'}</em>{isHost&&player.uid!==room.hostId&&<button className="kick-player-button" title={`Kích ${player.name}`} onClick={()=>void kickPlayer(player.uid)}><UserX/><span>KÍCH</span></button>}</>}
                 />
@@ -653,3 +649,4 @@ export default function Room() {
     </section>
   );
 }
+
