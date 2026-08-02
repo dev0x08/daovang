@@ -1,19 +1,32 @@
-import { DoorOpen, Gem, Pickaxe, Sparkles } from 'lucide-react';
+import { ArrowRight, Grid3X3, Pickaxe, Shield, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function Home(){
- const{profile}=useAuth();
- return <section className="gateway-home app-page app-page-full">
-  <div className="gateway-noise"/>
-  <div className="gateway-light"/>
-  <div className="gateway-copy">
-   <span className="gateway-eyebrow"><Sparkles/> BOARD GAME CHIẾN THUẬT ẨN VAI TRÒ</span>
-   <h1>BÍ ẨN<br/><em>ĐÀO VÀNG</em></h1>
-   <p>Đào sâu vào lòng núi, nối đường tới kho báu và tìm ra những con Sói đang trà trộn giữa đội thợ mỏ.</p>
-   <Link className="gateway-enter" to={profile?'/room':'/login'}><Pickaxe/><span>LỐI VÀO HẦM</span><DoorOpen/></Link>
-   <div className="gateway-facts"><span><b>12×5</b> BÀN HẦM</span><i/><span><b>6–8</b> NGƯỜI</span><i/><span><b>2</b> PHE</span></div>
-  </div>
-  <div className="gateway-mine" aria-hidden="true"><div className="gateway-moon"/><div className="gateway-ridge ridge-back"/><div className="gateway-ridge ridge-front"/><div className="gateway-door"><span><Gem/></span></div><div className="gateway-tracks"/></div>
- </section>
+export default function Home() {
+  const { profile } = useAuth();
+  return (
+    <main className="landing-page app-page app-page-full">
+      <section className="landing-shell">
+        <div className="landing-copy">
+          <span className="landing-kicker"><Pickaxe /> BOARD GAME CHIẾN THUẬT ẨN VAI TRÒ</span>
+          <h1>BÍ ẨN<br/><em>ĐÀO VÀNG</em></h1>
+          <p>Đào đường tới kho báu, phối hợp cùng đồng đội và tìm ra Sói đang ẩn mình giữa đoàn thợ mỏ.</p>
+          <div className="landing-actions">
+            <Link className="landing-primary" to={profile ? '/room' : '/login'}>
+              <Pickaxe /><span>{profile ? 'VÀO PHÒNG CHỜ' : 'BẮT ĐẦU CHƠI'}</span><ArrowRight />
+            </Link>
+            <Link className="landing-secondary" to="/guide">XEM HƯỚNG DẪN</Link>
+          </div>
+        </div>
+
+        <aside className="landing-brief" aria-label="Thông tin trận đấu">
+          <header><span>MISSION BRIEF</span><b>01</b></header>
+          <div><Grid3X3 /><span><small>BẢN ĐỒ</small><b>12 × 5 Ô</b></span></div>
+          <div><Users /><span><small>ĐỘI HÌNH</small><b>6–8 NGƯỜI</b></span></div>
+          <div><Shield /><span><small>PHE CHIẾN</small><b>THỢ MỎ / SÓI</b></span></div>
+          <footer><i/><span>SẴN SÀNG KẾT NỐI</span></footer>
+        </aside>
+      </section>
+    </main>
+  );
 }

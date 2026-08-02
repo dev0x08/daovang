@@ -14,6 +14,24 @@ export type MapConfig = { id:string; name:string; theme:'mine'|'ocean'|'tomb'; r
 export type Treasure = { id:string; revealed:boolean; isGold:boolean; peekedBy:string[] };
 export type GameState = { matchId:string; map:MapConfig; board:Cell[][]; obstacles:string[]; players:Player[]; treasures:Treasure[]; deck:Card[]; discardPile:Card[]; turn:number; logs:string[]; winner:null|'miners'|'wolves'; turns:number; rewardPool?:{exp:number;coins:number} };
 
+const minerPlacementScore=(state:GameState,player:Player,card:Card,row:number,col:number)=>{
+ const before=reachableFromEntrance(state.board,state.map),placedKey=key(row,col);
+ const board=state.board.map(line=>line.slice());
+ board[row][col]={card,owner:player.id};
+ const after=reachableFromEntrance(board,state.map);
+ // A legal card may still attach to an isolated branch; miners must ignore it.
+ if(!after.has(placedKey))return -100000;
+ const knownGold=state.treasures.find(t=>t.isGold&&t.peekedBy.includes(player.id));
+ const viable=state.map.objectives.filter(objective=>{const treasure=state.treasures.find(t=>t.id===objective.id);return knownGold?objective.id===knownGold.id:!treasure?.revealed||treasure.isGold});
+ const goals=viable.length?viable:state.map.objectives;
+ const distance=(positions:Set<string>)=>Math.min(...[...positions].flatMap(position=>{const[r,c]=position.split(',').map(Number);return goals.map(objective=>{const[gr,gc]=objectiveCell(state.map,objective);return Math.abs(r-gr)+Math.abs(c-gc)})}));
+ const beforeDistance=before.size?distance(before):state.map.cols+state.map.rows,afterDistance=distance(after);
+ let usefulExits=0,blockedExits=0;
+ for(const direction of dirs(card.kind as PathKind,card.rotation)){const[dr,dc]=delta[direction],nr=row+dr,nc=col+dc;if(!inBoard(state.map,nr,nc))continue;if(state.obstacles.includes(key(nr,nc)))blockedExits++;else if(!board[nr][nc])usefulExits++}
+ const reachesObjective=goals.some(objective=>{const[gr,gc,gd]=objectiveCell(state.map,objective),goalCell=board[gr]?.[gc];return after.has(key(gr,gc))&&Boolean(goalCell?.card&&dirs(goalCell.card.kind as PathKind,goalCell.card.rotation).includes(gd))});
+ return (reachesObjective?100000:0)+(beforeDistance-afterDistance)*1800+(after.size-before.size)*180+col*18+usefulExits*55-blockedExits*90-(isDeadPath(card.kind as PathKind)?1400:0);
+};
+
 export const GOLD_MINE_MAP:MapConfig={
  id:'gold-mine',name:'Mỏ Vàng Bị Lãng Quên',theme:'mine',rows:5,cols:12,
  entrance:{side:'left',row:2},
@@ -220,4 +238,26 @@ export const useBlock=(state:GameState,playerIndex:number,targetIndex:number,car
 export const useRevive=(state:GameState,playerIndex:number,targetIndex:number,cardIndex?:number):GameState=>{if(state.winner||state.turn!==playerIndex)return state;const resolved=cardIndex??state.players[playerIndex]?.hand.findIndex(c=>c.kind==='revive');const original=state.players[playerIndex]?.hand[resolved];if(original?.kind!=='revive')return state;const s=structuredClone(state) as GameState,p=s.players[playerIndex],target=s.players[targetIndex];if(!target||target.blockedTurns<=0)return state;const card=p.hand.splice(resolved,1)[0];s.discardPile.push(card);refill(s,p);target.blockedTurns=0;s.logs.unshift(`${p.name} đã dùng Hồi sinh cho ${target.name}.`);advance(s);return s};
 export const useSwap=(state:GameState,playerIndex:number,myCardIndex:number,targetIndex:number,targetCardIndex:number,actionCardIndex?:number):GameState=>{const resolved=actionCardIndex??state.players[playerIndex]?.hand.findIndex(c=>c.kind==='swap');if(state.winner||state.turn!==playerIndex||playerIndex===targetIndex||myCardIndex===resolved)return state;const player=state.players[playerIndex],target0=state.players[targetIndex];if(player?.hand[resolved]?.kind!=='swap'||!player.hand[myCardIndex]||!target0?.hand[targetCardIndex])return state;const s=structuredClone(state) as GameState,p=s.players[playerIndex],target=s.players[targetIndex],actionCard=p.hand[resolved];[p.hand[myCardIndex],target.hand[targetCardIndex]]=[target.hand[targetCardIndex],p.hand[myCardIndex]];p.hand.splice(resolved,1);s.discardPile.push(actionCard);refill(s,p);s.logs.unshift(`${p.name} đã bí mật đổi một lá bài với ${target.name}.`);advance(s);return s};
 
-export const botMove=(state:GameState):GameState=>{const idx=state.turn,p=state.players[idx];if(!p?.isBot||state.winner)return state;if(p.hand.length===0){const s=structuredClone(state) as GameState;s.logs.unshift(`${p.name} không còn bài và bỏ lượt.`);advance(s);return s;}const others=state.players.map((x,i)=>({x,i})).filter(v=>v.i!==idx);if(!p.specialUsed.revive){const blocked=others.find(v=>v.x.blockedTurns>0&&v.x.role===p.role);if(blocked&&Math.random()<.7)return useRevive(state,idx,blocked.i)}if(!p.specialUsed.block&&others.length&&Math.random()<.18){const targets=others.filter(v=>p.role==='wolf'?v.x.role==='miner':v.x.score>=Math.max(...others.map(o=>o.x.score)));const t=(targets.length?targets:others)[Math.floor(Math.random()*(targets.length||others.length))];return useBlock(state,idx,t.i)}if(!p.specialUsed.swap&&p.hand.length&&others.some(v=>v.x.hand.length)&&Math.random()<.12){const t=others.filter(v=>v.x.hand.length)[Math.floor(Math.random()*others.filter(v=>v.x.hand.length).length)];return useSwap(state,idx,Math.floor(Math.random()*p.hand.length),t.i,Math.floor(Math.random()*t.x.hand.length))}const targets:Array<[number,number]>=[];for(let r=0;r<state.map.rows;r++)for(let c=0;c<state.map.cols;c++)if(state.board[r][c])targets.push([r,c]);if(p.role==='wolf'&&p.canSabotage&&!p.sabotageUsed&&targets.length&&Math.random()<.45){const[r,c]=[...targets].sort((a,b)=>b[1]-a[1])[0];return useSabotage(state,idx,r,c)}const candidates:Array<[number,number,number]>=[];p.hand.forEach((card,i)=>{if(card.type==='path')for(let r=0;r<state.map.rows;r++)for(let c=0;c<state.map.cols;c++)if(isValidPlacement(state.board,card,r,c,state.map,state.obstacles))candidates.push([i,r,c])});if(p.role==='wolf'){const deleteIndex=p.hand.findIndex(c=>c.kind==='delete');if(deleteIndex>=0&&targets.length&&Math.random()<.45){const[r,c]=targets[Math.floor(Math.random()*targets.length)];return useAction(state,idx,deleteIndex,r,c)}}const scoutIndex=p.hand.findIndex(c=>c.kind==='scout');if(scoutIndex>=0){const hidden=state.treasures.find(t=>!t.revealed&&!t.peekedBy.includes(p.id));if(hidden&&Math.random()<.3)return scoutTreasure(state,idx,scoutIndex,hidden.id)}if(candidates.length){const score=([,r,c]:[number,number,number])=>p.role==='miner'?c+Math.random()*2:-c+Math.random()*5;const pick=[...candidates].sort((a,b)=>score(b)-score(a))[0];return placeCard(state,idx,pick[0],pick[1],pick[2])}return discardCard(state,idx,Math.max(0,Math.floor(Math.random()*p.hand.length)))};
+export const botMove=(state:GameState):GameState=>{
+ const idx=state.turn,p=state.players[idx];
+ if(!p?.isBot||state.winner)return state;
+ if(p.hand.length===0){const s=structuredClone(state) as GameState;s.logs.unshift(`${p.name} không còn bài và bỏ lượt.`);advance(s);return s}
+ const others=state.players.map((x,i)=>({x,i})).filter(v=>v.i!==idx);
+ if(!p.specialUsed.revive){const blocked=others.find(v=>v.x.blockedTurns>0&&v.x.role===p.role);if(blocked&&Math.random()<.7)return useRevive(state,idx,blocked.i)}
+ if(!p.specialUsed.block&&others.length&&Math.random()<.18){const targets=others.filter(v=>p.role==='wolf'?v.x.role==='miner':v.x.score>=Math.max(...others.map(o=>o.x.score))),t=(targets.length?targets:others)[Math.floor(Math.random()*(targets.length||others.length))];return useBlock(state,idx,t.i)}
+ if(!p.specialUsed.swap&&p.hand.length&&others.some(v=>v.x.hand.length)&&Math.random()<.12){const available=others.filter(v=>v.x.hand.length),t=available[Math.floor(Math.random()*available.length)];return useSwap(state,idx,Math.floor(Math.random()*p.hand.length),t.i,Math.floor(Math.random()*t.x.hand.length))}
+ const targets:Array<[number,number]>=[];
+ for(let r=0;r<state.map.rows;r++)for(let c=0;c<state.map.cols;c++)if(state.board[r][c])targets.push([r,c]);
+ if(p.role==='wolf'&&p.canSabotage&&!p.sabotageUsed&&targets.length&&Math.random()<.45){const[r,c]=[...targets].sort((a,b)=>b[1]-a[1])[0];return useSabotage(state,idx,r,c)}
+ const candidates:Array<[number,number,number]>=[];
+ p.hand.forEach((card,i)=>{if(card.type==='path')for(let r=0;r<state.map.rows;r++)for(let c=0;c<state.map.cols;c++)if(isValidPlacement(state.board,card,r,c,state.map,state.obstacles))candidates.push([i,r,c])});
+ if(p.role==='wolf'){const deleteIndex=p.hand.findIndex(c=>c.kind==='delete');if(deleteIndex>=0&&targets.length&&Math.random()<.45){const[r,c]=targets[Math.floor(Math.random()*targets.length)];return useAction(state,idx,deleteIndex,r,c)}}
+ const scoutIndex=p.hand.findIndex(c=>c.kind==='scout');
+ if(scoutIndex>=0){const hidden=state.treasures.find(t=>!t.revealed&&!t.peekedBy.includes(p.id));if(hidden&&Math.random()<.3)return scoutTreasure(state,idx,scoutIndex,hidden.id)}
+ if(candidates.length){
+  const ranked=candidates.map(candidate=>{const[i,r,c]=candidate;return{candidate,score:p.role==='miner'?minerPlacementScore(state,p,p.hand[i],r,c):-c+Math.random()*5}}).sort((a,b)=>b.score-a.score),pick=ranked[0];
+  if(p.role==='miner'&&pick.score<=-100000){const pathIndex=p.hand.findIndex(card=>card.type==='path');return discardCard(state,idx,pathIndex>=0?pathIndex:0)}
+  return placeCard(state,idx,pick.candidate[0],pick.candidate[1],pick.candidate[2]);
+ }
+ return discardCard(state,idx,Math.max(0,Math.floor(Math.random()*p.hand.length)));
+};

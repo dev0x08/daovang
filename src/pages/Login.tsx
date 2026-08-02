@@ -1,5 +1,54 @@
-import { LogIn, Pickaxe, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, LogIn, Pickaxe, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-export default function Login(){const{profile,loading,firebaseReady,login}=useAuth();const[busy,setBusy]=useState(false);const[error,setError]=useState('');const location=useLocation();if(loading)return <section className="center-page"><div className="auth-card"><Pickaxe className="spin-slow"/><h1>ĐANG KIỂM TRA PHIÊN</h1></div></section>;if(profile)return <Navigate to={(location.state as any)?.from||'/play'} replace/>;const go=async()=>{setBusy(true);setError('');try{await login()}catch(e:any){setError(e?.message||'Không thể đăng nhập Google.')}finally{setBusy(false)}};return <section className="login-page app-page app-page-full"><div className="login-visual"><Pickaxe/><span>HẦM MỎ ĐANG CHỜ</span><h1>BÍ ẨN<br/>ĐÀO VÀNG</h1><p>Đăng nhập để lưu hồ sơ, tạo phòng và đồng bộ trận đấu online.</p></div><div className="login-card"><ShieldCheck/><span className="eyebrow">TÀI KHOẢN NGƯỜI CHƠI</span><h2>ĐĂNG NHẬP ĐỂ CHƠI</h2><p>Mỗi người cần một tài khoản Google để nhận đúng vai trò và không bị trùng người chơi.</p>{firebaseReady?<button className="btn btn-primary btn-wide" onClick={go} disabled={busy}><LogIn/>{busy?'ĐANG MỞ GOOGLE...':'ĐĂNG NHẬP BẰNG GOOGLE'}</button>:<div className="firebase-warning"><TriangleAlert/><div><b>CHƯA CẤU HÌNH FIREBASE</b><small>Sao chép .env.example thành .env.local và điền thông tin dự án Firebase.</small></div></div>}{error&&<p className="error">{error}</p>}<small>Bằng việc đăng nhập, người chơi đồng ý sử dụng tên và ảnh đại diện Google trong phòng.</small></div></section>}
+
+export default function Login() {
+  const { profile, loading, authError, firebaseReady, login } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const location = useLocation();
+
+  if (loading) return (
+    <main className="login-compact-page app-page app-page-full">
+      <section className="login-status-card">
+        <Pickaxe className="spin-slow" />
+        <span>AUTH SYSTEM</span>
+        <h1>ĐANG KIỂM TRA PHIÊN</h1>
+        <i />
+      </section>
+    </main>
+  );
+  if (profile) return <Navigate to={(location.state as { from?: string } | null)?.from || '/play'} replace />;
+
+  const go = async () => {
+    setBusy(true);
+    setError('');
+    try { await login(); }
+    catch (caught: unknown) { setError(caught instanceof Error ? caught.message : 'Không thể đăng nhập Google.'); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <main className="login-compact-page app-page app-page-full">
+      <section className="login-compact-card">
+        <Link className="login-back" to="/" aria-label="Về trang chủ"><ArrowLeft /></Link>
+        <div className="login-mark"><ShieldCheck /></div>
+        <span className="login-kicker">PLAYER ACCESS</span>
+        <h1>ĐĂNG NHẬP</h1>
+        <p>Dùng tài khoản Google để lưu hồ sơ và tham gia phòng chơi online.</p>
+
+        {firebaseReady ? (
+          <button className="login-google-button" onClick={go} disabled={busy}>
+            <LogIn /><span>{busy ? 'ĐANG KẾT NỐI...' : 'TIẾP TỤC VỚI GOOGLE'}</span>
+          </button>
+        ) : (
+          <div className="login-warning"><TriangleAlert /><span><b>CHƯA CẤU HÌNH FIREBASE</b><small>Kiểm tra các biến môi trường Firebase.</small></span></div>
+        )}
+
+        {(error || authError) && <div className="login-error"><TriangleAlert />{error || authError}</div>}
+        <small className="login-note">Thông tin Google chỉ dùng cho hồ sơ và đồng bộ dữ liệu trò chơi.</small>
+      </section>
+    </main>
+  );
+}

@@ -1098,49 +1098,53 @@ input,select,textarea,.wallet,.badge,.status-pill,.turn-pill,.ping-badge,
 .special-modal{padding:18px!important;background:rgba(2,7,12,.9)!important;backdrop-filter:blur(9px)!important}
 .special-modal .special-card{
   --skill-accent:#e9b443;
-  width:min(620px,94vw)!important;
+  width:min(680px,94vw)!important;
   max-height:min(720px,90vh)!important;
   display:flex!important;
   flex-direction:column!important;
-  align-items:center!important;
+  align-items:stretch!important;
   gap:0!important;
-  padding:28px!important;
+  padding:26px 28px 28px!important;
   overflow:hidden auto!important;
   border:1px solid color-mix(in srgb,var(--skill-accent) 55%,#263b50)!important;
-  border-radius:14px!important;
-  background:radial-gradient(circle at 50% 0,color-mix(in srgb,var(--skill-accent) 12%,transparent),transparent 34%),linear-gradient(180deg,#111f2e,#08121d)!important;
+  border-radius:0!important;
+  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)!important;
+  background:linear-gradient(105deg,color-mix(in srgb,var(--skill-accent) 7%,#071521),#07121d 42%,#091827)!important;
   box-shadow:0 28px 80px rgba(0,0,0,.72),inset 0 0 0 3px #07111b!important;
 }
 .special-modal .special-card.skill-block{--skill-accent:#f0b932}.special-modal .special-card.skill-revive{--skill-accent:#4bdd7b}.special-modal .special-card.skill-swap{--skill-accent:#54a9f8}
 .special-hero-icon{
-  width:64px!important;
-  height:64px!important;
-  margin:0 0 12px!important;
+  position:absolute!important;
+  left:28px!important;
+  top:27px!important;
+  width:50px!important;
+  height:50px!important;
+  margin:0!important;
   display:grid!important;
   grid-template-columns:1fr!important;
   place-items:center!important;
   border:1px solid var(--skill-accent)!important;
-  border-radius:14px!important;
+  border-radius:0!important;
   background:#08131e!important;
   color:var(--skill-accent)!important;
   box-shadow:inset 0 0 18px color-mix(in srgb,var(--skill-accent) 12%,transparent),0 0 22px color-mix(in srgb,var(--skill-accent) 16%,transparent)!important;
 }
-.special-hero-icon svg{width:32px!important;height:32px!important;stroke-width:2!important}
-.special-modal .special-card>.eyebrow{justify-content:center!important;color:var(--skill-accent)!important}
-.special-modal .special-card>h2{margin:5px 0 4px!important;color:#f4f7fa!important;font-size:30px!important;letter-spacing:.8px!important}
-.special-modal .special-card>p{margin:5px 0 18px!important;color:#93a2b1!important;font-size:12px!important}
+.special-hero-icon svg{width:26px!important;height:26px!important;stroke-width:2!important}
+.special-modal .special-card>.eyebrow{min-height:16px!important;padding-left:66px!important;justify-content:flex-start!important;color:var(--skill-accent)!important}
+.special-modal .special-card>h2{min-height:34px!important;margin:2px 0 0!important;padding-left:66px!important;color:#f4f7fa!important;font-size:28px!important;letter-spacing:.8px!important;text-align:left!important}
+.special-modal .special-card>p{margin:14px 0 16px!important;padding-top:12px!important;border-top:1px solid #18384b!important;color:#9bb0c1!important;font-size:12px!important;text-align:left!important}
 .special-modal .prompt-close{right:14px!important;top:14px!important;width:34px!important;height:34px!important;display:grid!important;place-items:center!important;border:1px solid #34495c!important;border-radius:8px!important;background:#0b1722!important}
 .special-modal .special-player-list,.special-modal .swap-my-cards,.special-modal .facedown-cards{
   width:100%!important;
   margin:0!important;
   display:grid!important;
-  grid-template-columns:repeat(3,minmax(0,1fr))!important;
-  gap:9px!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
 }
 .special-modal .special-player-list button,.special-modal .swap-my-cards button,.special-modal .facedown-cards button{
   position:relative!important;
   min-width:0!important;
-  min-height:88px!important;
+  min-height:66px!important;
   display:grid!important;
   grid-template-columns:48px minmax(0,1fr)!important;
   grid-template-rows:auto auto!important;
@@ -1149,13 +1153,14 @@ input,select,textarea,.wallet,.badge,.status-pill,.turn-pill,.ping-badge,
   padding:10px!important;
   overflow:hidden!important;
   border:1px solid #344c61!important;
-  border-radius:9px!important;
+  border-radius:0!important;
+  clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px)!important;
   background:linear-gradient(145deg,#142638,#0a1723)!important;
   color:#e8eef4!important;
   text-align:left!important;
 }
 .special-modal .special-player-list button:hover,.special-modal .swap-my-cards button:hover,.special-modal .facedown-cards button:hover{border-color:var(--skill-accent)!important;background:linear-gradient(145deg,#1b3145,#0c1c2a)!important}
-.special-modal .special-player-list button:disabled{opacity:.32!important;cursor:not-allowed!important}
+.special-modal .special-player-list button:disabled{opacity:.42!important;cursor:not-allowed!important;filter:saturate(.45)!important}
 .special-modal .special-player-list button>span,.special-modal .facedown-cards button>span{
   grid-row:1/3!important;
   width:44px!important;
@@ -1163,12 +1168,12 @@ input,select,textarea,.wallet,.badge,.status-pill,.turn-pill,.ping-badge,
   display:grid!important;
   place-items:center!important;
   border:1px solid #52697d!important;
-  border-radius:9px!important;
+  border-radius:0!important;
   background:#07121c!important;
   color:var(--skill-accent)!important;
 }
 .special-modal .special-player-list button>span svg,.special-modal .facedown-cards button>span svg{width:23px!important;height:23px!important}
-.special-modal .special-player-list button>b,.special-modal .facedown-cards button>b{font-size:12px!important;align-self:end!important}.special-modal .special-player-list button>small{font-size:8px!important;color:#7f91a2!important;align-self:start!important}
+.special-modal .special-player-list button>b,.special-modal .facedown-cards button>b{font-size:13px!important;align-self:end!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.special-modal .special-player-list button>small{font-size:8px!important;color:var(--skill-accent)!important;letter-spacing:.8px!important;align-self:start!important}
 .special-modal .swap-my-cards button{grid-template-columns:58px minmax(0,1fr)!important}.special-modal .swap-my-cards .tunnel-svg{grid-row:1/3!important;width:54px!important;height:54px!important}.special-modal .swap-my-cards b{font-size:10px!important}
 .special-modal .facedown-cards button{grid-template-columns:44px 1fr!important}
 
@@ -6371,6 +6376,86 @@ html,body,#root,.site-shell{max-width:100%;overflow-x:hidden!important;overscrol
   .guild-member-editor .guild-title-picker {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* Match result: keep the end-of-match screen in the same dark tactical HUD. */
+.game-route .match-summary-card {
+  width: min(1180px, 96vw) !important;
+  padding: 0 !important;
+  border: 1px solid #16748a !important;
+  border-radius: 0 !important;
+  color: #dff9fc !important;
+  background: linear-gradient(145deg, #071a29, #020b13 72%) !important;
+  box-shadow: 0 0 0 1px rgb(42 232 240 / 10%), 0 32px 100px #000 !important;
+}
+
+.game-route .match-summary-card > header {
+  padding: 20px 26px !important;
+  border-color: #15566a !important;
+  background: linear-gradient(90deg, rgb(10 55 75 / 82%), rgb(3 15 25 / 96%)) !important;
+}
+
+.game-route .match-summary-card > header h2,
+.game-route .match-summary-card > header b,
+.game-route .match-summary-card > header strong { color: #edfeff !important; }
+.game-route .match-summary-card > header > svg { color: #45edf3 !important; filter: drop-shadow(0 0 10px rgb(69 237 243 / 45%)); }
+.game-route .match-summary-table { padding: 12px 18px !important; border: 0 !important; }
+.game-route .summary-head,
+.game-route .summary-row { grid-template-columns: minmax(250px, 1.7fr) 130px 92px 110px 110px 190px !important; }
+.game-route .summary-head {
+  padding: 10px 12px !important;
+  border: 1px solid #124b60 !important;
+  background: #071b2a !important;
+  color: #6fabb7 !important;
+}
+.game-route .summary-row,
+.game-route .summary-row:nth-child(even),
+.game-route .summary-row:nth-child(odd) {
+  min-height: 68px !important;
+  margin-top: 6px !important;
+  padding: 8px 12px !important;
+  border: 1px solid #123d50 !important;
+  color: #d9f1f4 !important;
+  background: linear-gradient(90deg, #071927, #06131e) !important;
+}
+.game-route .summary-row.is-winner {
+  border-left: 4px solid #35eef3 !important;
+  background: linear-gradient(90deg, rgb(11 64 75 / 75%), #06131e 55%) !important;
+  box-shadow: inset 8px 0 24px rgb(53 238 243 / 8%) !important;
+}
+.game-route .summary-row.is-you {
+  outline: 1px solid #d8a936 !important;
+  outline-offset: -1px !important;
+}
+.game-route .summary-row :where(b,strong) { color: #edfeff !important; }
+.game-route .role-chip { justify-content: center !important; min-width: 92px !important; padding: 7px 9px !important; border-color: #27788a !important; background: #0a3140 !important; color: #75f4f7 !important; }
+.game-route .role-chip.wolf { border-color: #8a3948 !important; background: #32121d !important; color: #ff8799 !important; }
+.game-route .result-win { color: #42f1d4 !important; text-shadow: 0 0 10px rgb(66 241 212 / 30%); }
+.game-route .result-loss { color: #ff7189 !important; }
+.game-route .reward-value.coins,
+.game-route .reward-value.exp { color: #4beef3 !important; }
+.game-route .summary-social { justify-content: flex-start !important; }
+.game-route .like-btn,
+.game-route .friend-summary-btn {
+  min-width: 86px !important;
+  border: 1px solid #23586a !important;
+  border-radius: 0 !important;
+  background: #071925 !important;
+  color: #70abb5 !important;
+}
+.game-route .like-btn:disabled,
+.game-route .friend-summary-btn:disabled { opacity: .22 !important; }
+.game-route .match-summary-card > footer {
+  border-color: #15566a !important;
+  background: #06141f !important;
+  color: #9bc0c7 !important;
+}
+.game-route .your-reward b { color: #4beef3 !important; }
+
+@media (max-width: 760px) {
+  .game-route .match-summary-card { padding: 0 !important; }
+  .game-route .summary-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; }
+  .game-route .summary-social { justify-content: flex-start !important; }
 }
 
 .guild-missions-panel {
