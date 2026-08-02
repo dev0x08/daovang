@@ -38,7 +38,7 @@ export type Guild={
 };
 export type GuildMember={
   uid:string;displayName:string;photoURL:string;rank:string;equipped?:Equipped;
-  role:GuildRole;title:string;contribution:number;warPoints:number;level?:number;joinedAt?:unknown;
+  role:GuildRole;title:string;contribution:number;goldContribution?:number;warPoints:number;level?:number;onlineSecondsToday?:number;joinedAt?:unknown;
   missionProgress?:GuildMissionProgress;
 };
 export type GuildApplication=Omit<GuildMember,'role'|'title'|'contribution'|'warPoints'|'joinedAt'>&{message:string;createdAt?:unknown};
@@ -46,7 +46,7 @@ export type GuildActivity={id:string;type:'guild'|'system';text:string;authorId:
 
 const memberData=(profile:Pick<Profile,'uid'|'displayName'|'photoURL'|'rank'|'equipped'>,role:GuildRole='member'):Omit<GuildMember,'joinedAt'>=>({
   uid:profile.uid,displayName:profile.displayName,photoURL:profile.photoURL,rank:profile.rank,
-  equipped:profile.equipped,role,title:role==='owner'?'Hội trưởng':'Thành viên',contribution:0,warPoints:0,
+  equipped:profile.equipped,role,title:role==='owner'?'Hội trưởng':'Thành viên',contribution:0,goldContribution:0,warPoints:0,
 });
 
 const normalizeGuild=(id:string,data:Record<string,unknown>):Guild=>({
@@ -116,7 +116,8 @@ export async function getGuildMembers(guildId:string):Promise<GuildMember[]>{
   const snap=await getDocs(collection(db,'guilds',guildId,'members'));
   const rows=await Promise.all(snap.docs.map(async item=>{
     const member=item.data() as GuildMember,user=await getDoc(doc(db!,'users',item.id)),data=user.data();
-    return{...member,level:levelFromExp(Number(data?.exp||0)),rank:rankFromPoints(Number(data?.rankPoints||0)).label};
+    const onlineSecondsToday=String(data?.missionDate||'')===todayKey()?Math.max(0,Number(data?.onlineSecondsToday||0)):0;
+    return{...member,goldContribution:Math.max(0,Number(member.goldContribution||0)),onlineSecondsToday,level:levelFromExp(Number(data?.exp||0)),rank:rankFromPoints(Number(data?.rankPoints||0)).label};
   }));
   return rows.sort((a,b)=>roleWeight(a.role)-roleWeight(b.role)||b.contribution-a.contribution);
 }
@@ -158,7 +159,7 @@ export async function addGuildMember(guildId:string,player:GuildApplication|Pick
   const memberLimit=guildLevelConfig(guildLevel).memberLimit;
   if(Number(guildSnap.data().memberCount||0)>=memberLimit)throw new Error(`Guild Lv.${guildLevel} chỉ có tối đa ${memberLimit} thành viên.`);
   const batch=writeBatch(db);
-  batch.set(memberRef,{uid:player.uid,displayName:player.displayName,photoURL:player.photoURL,rank:player.rank,equipped:player.equipped||{},role:'member',title:'Thành viên',contribution:0,warPoints:0,joinedAt:serverTimestamp()});
+  batch.set(memberRef,{uid:player.uid,displayName:player.displayName,photoURL:player.photoURL,rank:player.rank,equipped:player.equipped||{},role:'member',title:'Thành viên',contribution:0,goldContribution:0,warPoints:0,joinedAt:serverTimestamp()});
   batch.delete(doc(db,'guilds',guildId,'applications',player.uid));
   batch.update(doc(db,'guilds',guildId),{memberCount:increment(1),updatedAt:serverTimestamp()});
   await batch.commit();
@@ -194,6 +195,13 @@ export async function transferGuildOwnership(guildId:string,currentOwnerId:strin
 export async function updateGuildAnnouncement(guildId:string,announcement:string){
   if(!db)return;
   await updateDoc(doc(db,'guilds',guildId),{announcement:announcement.trim().slice(0,240),updatedAt:serverTimestamp()});
+}
+
+export async function updateGuildDescription(guildId:string,description:string){
+  if(!db)return;
+  const safeDescription=description.trim();
+  if(safeDescription.length<10||safeDescription.length>160)throw new Error('Giới thiệu guild phải từ 10 đến 160 ký tự.');
+  await updateDoc(doc(db,'guilds',guildId),{description:safeDescription,updatedAt:serverTimestamp()});
 }
 
 export async function updateGuildBadge(guildId:string,badge:string){
@@ -272,7 +280,7 @@ export async function claimGuildMission(guildId:string,uid:string,missionId:stri
     if(claimed.includes(mission.id))return false;
     if(missionValue(progress,mission)<mission.target)throw new Error('Nhiệm vụ Guild chưa hoàn thành.');
     claimed.push(mission.id);
-    transaction.update(memberRef,{contribution:increment(mission.reward),missionProgress:progress});
+    transaction.update(memberRef,{missionProgress:progress});
     transaction.update(guildRef,guildExpPatch(guildSnap.data(),mission.reward));
     return true;
   });
@@ -298,7 +306,7 @@ export async function depositGuildFunds(guildId:string,uid:string,amount:number)
     if(coins<safeAmount)throw new Error('Bạn không đủ vàng.');
     transaction.update(userRef,{coins:coins-safeAmount});
     transaction.update(guildRef,{totalContribution:increment(safeAmount),...guildExpPatch(guildSnap.data(),earnedPoints,safeAmount)});
-    transaction.update(memberRef,{contribution:increment(earnedPoints),missionProgress:progress});
+    transaction.update(memberRef,{goldContribution:increment(safeAmount),missionProgress:progress});
     return coins-safeAmount;
   });
 }
@@ -307,7 +315,7 @@ export async function distributeGuildTreasury(guildId:string,requestedAmount:num
   if(!db)throw new Error('Firebase chưa sẵn sàng.');
   const guildRef=doc(db,'guilds',guildId),[memberSnap,payoutSnap]=await Promise.all([getDocs(collection(guildRef,'members')),getDocs(collection(guildRef,'payouts'))]);
   if(memberSnap.empty)throw new Error('Guild chưa có thành viên.');
-  const pending=new Set(payoutSnap.docs.map(item=>item.id)),eligible=memberSnap.docs.filter(member=>!pending.has(member.id)&&(!contributorsOnly||Number(member.data().contribution||0)>0));
+  const pending=new Set(payoutSnap.docs.map(item=>item.id)),eligible=memberSnap.docs.filter(member=>!pending.has(member.id)&&(!contributorsOnly||Number(member.data().goldContribution||0)>0));
   if(!eligible.length)throw new Error('Tất cả thành viên đang có phần quỹ chưa nhận.');
   const guildSnap=await getDoc(guildRef),treasury=Math.max(0,Math.floor(Number(guildSnap.data()?.treasury||0))),amount=Math.floor(requestedAmount);
   if(amount<1||amount>treasury)throw new Error('Số vàng phát không hợp lệ.');

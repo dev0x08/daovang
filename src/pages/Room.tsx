@@ -594,17 +594,17 @@ export default function Room() {
           <h1>#{showCode ? room.code : '••••••'}</h1>
         </div>
         <div className="lobby-code-actions">
-          <button className="btn btn-ghost btn-small" onClick={() => setShowCode((value) => !value)}>
-            {showCode ? <EyeOff /> : <Eye />}{showCode ? 'Ẩn mã' : 'Hiện mã'}
+          <button className="lobby-icon-action" data-tooltip={showCode ? 'Ẩn mã phòng' : 'Hiện mã phòng'} aria-label={showCode ? 'Ẩn mã phòng' : 'Hiện mã phòng'} onClick={() => setShowCode((value) => !value)}>
+            {showCode ? <EyeOff /> : <Eye />}
           </button>
-          <button className="btn btn-ghost btn-small" onClick={() => navigator.clipboard.writeText(room.code)}>
-            <Copy /> Sao chép
+          <button className="lobby-icon-action" data-tooltip="Sao chép mã phòng" aria-label="Sao chép mã phòng" onClick={() => navigator.clipboard.writeText(room.code)}>
+            <Copy />
           </button>
-          <button className="btn btn-ghost btn-small" onClick={()=>setShowFriendInvite(true)}>
-            <UserPlus/> Mời bạn
+          <button className="lobby-icon-action" data-tooltip="Mời bạn bè" aria-label="Mời bạn bè" onClick={()=>setShowFriendInvite(true)}>
+            <UserPlus/>
           </button>
-          <button className="btn btn-danger btn-small" onClick={() => void leaveRoom()}>
-            <DoorOpen /> Rời phòng
+          <button className="lobby-icon-action danger" data-tooltip="Rời phòng" aria-label="Rời phòng" onClick={() => void leaveRoom()}>
+            <DoorOpen />
           </button>
         </div>
       </div>
