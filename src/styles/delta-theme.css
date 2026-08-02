@@ -1652,7 +1652,22 @@ footer a:hover { color: #6ff9fd; text-shadow: 0 0 7px #0cb7c6; }
 .room-lobby-head { border-bottom: 1px solid #126b80 !important; background: linear-gradient(90deg, rgb(8 65 84 / 22%), transparent) !important; }
 .room-table-row { border-bottom: 1px solid #103e52 !important; }
 .room-type-legend, .room-list-empty, .waiting-host, .empty-slot { color: #5f96a1 !important; }
-.room-code-join { background: rgb(5 27 43 / 88%) !important; }
+.room-code-join {
+  width: min(400px,100%) !important;
+  height: 44px !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) 118px !important;
+  gap: 0 !important;
+  border: 1px solid #176b80 !important;
+  background: linear-gradient(90deg,#061b2a,#04131f) !important;
+  box-shadow: inset 0 0 16px rgb(27 218 228 / 5%) !important;
+}
+.room-code-join>label{min-width:0;height:42px;padding:0 13px;display:grid;grid-template-columns:24px minmax(0,1fr);align-items:center;gap:9px;border:0;border-right:1px solid #176b80;background:#04121e;cursor:text;transition:.16s ease}.room-code-join>label:focus-within{background:#071d2a;box-shadow:inset 3px 0 #32edf3}
+.room-code-join>label>svg{width:17px;color:#39e7ed}.room-code-join>label>span{min-width:0;display:block}
+.room-code-join input{width:100%!important;height:40px!important;padding:0!important;border:0!important;background:transparent!important;color:#e9feff!important;text-align:left!important;font:800 12px 'Chakra Petch'!important;letter-spacing:2px!important;box-shadow:none!important;outline:0!important}.room-code-join input::placeholder{color:#587985!important;opacity:1!important;font-size:9px!important;letter-spacing:1.4px!important}
+.room-code-join .btn{height:42px!important;min-height:42px!important;margin:0!important;padding:0 10px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;border:0!important;font-size:8px!important;white-space:nowrap!important}.room-code-join .btn svg{width:15px!important}
+@media(max-width:760px){.room-code-join{grid-template-columns:minmax(0,1fr) 108px!important}.room-code-join .btn{padding:0 8px!important}}
 .room-privacy-badge, .room-status-badge {
   color: #5feef4 !important;
   border: 1px solid #126f83 !important;

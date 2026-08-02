@@ -403,20 +403,7 @@ export default function Room() {
                 <span><Globe2 /> Công khai</span>
                 <span><LockKeyhole /> Riêng tư</span>
               </div>
-              <div className="room-code-join">
-                <Search aria-hidden="true" />
-                <input
-                  value={input}
-                  onChange={(event) => setInput(event.target.value.toUpperCase())}
-                  onKeyDown={(event) => event.key === 'Enter' && void joinByCode()}
-                  maxLength={6}
-                  aria-label="Mã phòng"
-                  placeholder="MÃ PHÒNG"
-                />
-                <button onClick={() => void joinByCode()} className="btn btn-primary">
-                  VÀO PHÒNG
-                </button>
-              </div>
+              <form className="room-code-inline" onSubmit={event=>{event.preventDefault();void joinByCode()}}><button title="Vào phòng bằng mã" aria-label="Vào phòng bằng mã"><Search/></button><input value={input} onChange={event=>setInput(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g,''))} maxLength={6} placeholder="Nhập mã phòng..." aria-label="Mã phòng"/></form>
             </div>
           </header>
 
@@ -486,7 +473,7 @@ export default function Room() {
 
         {showCreate && (
           <div className="room-modal-backdrop" onMouseDown={() => setShowCreate(false)}>
-            <div className="room-modal" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="room-modal create-room-modal" onMouseDown={(event) => event.stopPropagation()}>
               <button className="room-modal-close" onClick={() => setShowCreate(false)}><X /></button>
               <div className="room-modal-icon"><DoorOpen /></div>
               <span>TẠO PHÒNG ONLINE</span>

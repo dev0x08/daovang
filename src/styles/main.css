@@ -6378,6 +6378,11 @@ html,body,#root,.site-shell{max-width:100%;overflow-x:hidden!important;overscrol
   }
 }
 
+/* Member title and role share one editor; expose only the primary control. */
+.guild-member-list .guild-field-settings {
+  display: none !important;
+}
+
 /* Match result: keep the end-of-match screen in the same dark tactical HUD. */
 .game-route .match-summary-card {
   width: min(1180px, 96vw) !important;
@@ -6680,4 +6685,651 @@ html,body,#root,.site-shell{max-width:100%;overflow-x:hidden!important;overscrol
     border-right: 0 !important;
     border-bottom: 1px solid rgb(196 153 59 / 22%) !important;
   }
+}
+
+/* Compact match history on desktop and convert rows to small cards on mobile. */
+.history-page {
+  max-width: 1180px !important;
+}
+
+.history-page .history-list-head,
+.history-page .history-row {
+  min-width: 760px !important;
+  grid-template-columns: 105px 115px minmax(180px, 1fr) 155px 92px !important;
+  gap: 8px !important;
+}
+
+.history-page .history-list-head {
+  min-height: 34px !important;
+  padding-inline: 12px !important;
+}
+
+.history-page .history-row,
+.history-page .history-row:nth-child(even) {
+  min-height: 58px !important;
+  padding: 6px 12px !important;
+}
+
+.history-page .history-reward > span {
+  min-height: 36px !important;
+  padding: 3px 6px !important;
+}
+
+.history-page .history-review-button {
+  height: 32px !important;
+}
+
+@media (max-width: 700px) {
+  .history-page .history-table,
+  .history-page .history-list {
+    overflow: visible !important;
+  }
+
+  .history-page .history-list-head {
+    display: none !important;
+  }
+
+  .history-page .history-row,
+  .history-page .history-row:nth-child(even) {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 92px !important;
+    padding: 9px 10px !important;
+    display: grid !important;
+    grid-template-columns: 82px 82px minmax(0, 1fr) 88px !important;
+    grid-template-rows: 38px 34px !important;
+    gap: 5px 7px !important;
+  }
+
+  .history-page .history-result,
+  .history-page .history-role {
+    align-self: center !important;
+  }
+
+  .history-page .history-reward {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .history-page .history-reward > span {
+    min-height: 34px !important;
+  }
+
+  .history-page .history-row > time {
+    grid-column: 1 / 4 !important;
+    align-self: center !important;
+  }
+
+  .history-page .history-review-button {
+    grid-column: 4 !important;
+    height: 32px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .history-page .history-row,
+  .history-page .history-row:nth-child(even) {
+    grid-template-columns: 76px 74px minmax(0, 1fr) 82px !important;
+    padding-inline: 7px !important;
+    gap: 4px !important;
+  }
+
+  .history-page .history-result b,
+  .history-page .history-row strong {
+    font-size: 10px !important;
+  }
+
+  .history-page .history-review-button span {
+    font-size: 7px !important;
+  }
+}
+
+/* Smaller profile shell and a true 2-column mobile career dashboard. */
+.profile-career-banner .profile-banner-main {
+  padding: 24px 28px 20px !important;
+}
+
+.profile-career-banner .large-avatar {
+  width: 84px !important;
+  height: 84px !important;
+}
+
+.profile-career-banner .profile-career-stats {
+  margin: 0 16px 16px !important;
+  padding: 10px !important;
+}
+
+.profile-career-banner .profile-career-stats article {
+  min-height: 58px !important;
+  padding: 8px 10px !important;
+}
+
+.admin-pagination {
+  min-height: 52px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-top: 1px solid #14566a;
+  background: #051522;
+}
+
+.admin-pagination button {
+  width: 36px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #18758a;
+  background: #082433;
+  color: #58eaf0;
+  cursor: pointer;
+}
+
+.admin-pagination button:hover:not(:disabled) {
+  border-color: #55f0f5;
+  box-shadow: 0 0 12px rgb(51 232 240 / 16%);
+}
+
+.admin-pagination button:disabled { opacity: .3; cursor: not-allowed; }
+.admin-pagination button svg { width: 16px; }
+.admin-pagination span { display: flex; align-items: center; gap: 5px; color: #739ba4; font: 800 8px 'Chakra Petch'; letter-spacing: 1px; }
+.admin-pagination span b { color: #54eaf0; font-size: 12px; }
+.admin-pagination span small { margin-left: 8px; color: #4d7781; font-size: 7px; }
+
+@media (max-width: 600px) {
+  .profile-page {
+    padding: 14px 8px 50px !important;
+  }
+
+  .profile-career-banner .profile-banner-main {
+    margin: 7px !important;
+    padding: 12px !important;
+    display: grid !important;
+    grid-template-columns: 68px minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .profile-career-banner .large-avatar {
+    width: 68px !important;
+    height: 68px !important;
+    align-self: start !important;
+  }
+
+  .profile-career-banner .profile-banner-copy {
+    min-width: 0 !important;
+  }
+
+  .profile-career-banner .profile-banner-copy > span {
+    font-size: 7px !important;
+    letter-spacing: 1.4px !important;
+  }
+
+  .profile-career-banner .profile-banner-copy h1 {
+    margin: 3px 0 5px !important;
+    font-size: clamp(25px, 8vw, 34px) !important;
+    line-height: .95 !important;
+  }
+
+  .profile-career-banner .profile-title-line {
+    margin: 3px 0 7px !important;
+    font-size: 9px !important;
+  }
+
+  .profile-career-banner .profile-rank-badges {
+    gap: 5px !important;
+  }
+
+  .profile-career-banner .profile-rank-badges > strong {
+    min-height: 30px !important;
+    padding: 5px 7px !important;
+  }
+
+  .profile-career-banner .profile-exp {
+    height: 15px !important;
+    margin-top: 7px !important;
+  }
+
+  .profile-career-banner .profile-currency {
+    grid-column: 1 / -1 !important;
+    min-width: 0 !important;
+    min-height: 42px !important;
+    padding: 7px 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 7px !important;
+    border-top: 1px solid rgb(var(--career-accent-rgb) / 24%) !important;
+  }
+
+  .profile-career-banner .profile-currency b { font-size: 22px !important; }
+
+  .profile-career-banner .profile-career-stats {
+    margin: 0 7px 7px !important;
+    padding: 7px !important;
+  }
+
+  .profile-career-banner .profile-career-stats > header {
+    height: 32px !important;
+    margin: -7px -7px 7px !important;
+    padding: 0 9px !important;
+    font-size: 10px !important;
+  }
+
+  .profile-career-banner .profile-career-stats > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .profile-career-banner .profile-career-stats article {
+    min-height: 58px !important;
+    padding: 6px 7px !important;
+    gap: 6px !important;
+  }
+
+  .profile-career-banner .profile-career-stats article > svg {
+    width: 18px !important;
+    flex: 0 0 18px !important;
+  }
+
+  .profile-career-banner .profile-career-stats article b {
+    font-size: 16px !important;
+  }
+
+  .profile-career-banner .profile-career-stats article small {
+    font-size: 5.5px !important;
+    line-height: 1.25 !important;
+  }
+
+  .admin-pagination { padding-inline: 8px; }
+  .admin-pagination span small { display: none; }
+}
+
+/* Inline room-code field mirrors the Guild member search control. */
+.room-code-inline {
+  width: min(310px, 46%);
+  height: 42px;
+  min-height: 42px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid #14778b;
+  background: #031326;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+  box-shadow: inset 0 0 18px rgb(10 118 148 / 9%);
+}
+
+.room-code-inline > button {
+  width: 42px;
+  height: 40px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-right: 1px solid #104b60;
+  background: transparent;
+  color: #2ae8ef;
+  cursor: pointer;
+}
+
+.room-code-inline > button:hover { background: #082036; }
+.room-code-inline > button svg { width: 16px; filter: drop-shadow(0 0 5px rgb(18 229 239 / 50%)); }
+.room-code-inline > input {
+  width: 100% !important;
+  height: 40px !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 14px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  clip-path: none !important;
+  background: #06182a !important;
+  box-shadow: none !important;
+  color: #d5fbfd !important;
+  text-align: left !important;
+  font: 500 12px 'Noto Sans', sans-serif !important;
+  letter-spacing: 0 !important;
+}
+.room-code-inline > input:focus { background: #082036 !important; box-shadow: inset 3px 0 #28e7ee !important; }
+.room-code-inline > input::placeholder { color: #507f89 !important; opacity: 1; }
+
+@media (max-width: 760px) {
+  .room-code-inline { width: 100%; max-width: none; }
+}
+
+/* Join by code lives in a focused dialog instead of crowding the list header. */
+.room-join-code-trigger {
+  height: 38px;
+  padding: 0 13px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #177286;
+  background: #06202e;
+  color: #62eaf0;
+  font: 800 8px 'Chakra Petch';
+  letter-spacing: .8px;
+  cursor: pointer;
+}
+.room-join-code-trigger:hover { border-color: #51edf2; background: #0a3342; }
+.room-join-code-trigger svg { width: 15px; }
+
+.room-code-modal {
+  width: min(390px, calc(100vw - 24px)) !important;
+  padding: 22px !important;
+  overflow: visible !important;
+  border-color: #19788d !important;
+  background: linear-gradient(145deg, #071c2b, #020b14) !important;
+}
+.room-code-modal .room-modal-icon { width: 40px !important; height: 40px !important; margin-bottom: 10px !important; }
+.room-code-modal h2 { margin: 4px 0 5px !important; font-size: 28px !important; }
+.room-code-modal > p { margin: 0 0 14px !important; font-size: 10px !important; }
+.room-code-modal-field {
+  height: 48px;
+  padding: 0 13px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #23788a;
+  background: #020b14;
+}
+.room-code-modal-field:focus-within { border-color: #4cecf2; box-shadow: inset 3px 0 #43e9ef, 0 0 14px rgb(55 229 237 / 10%); }
+.room-code-modal-field svg { width: 18px; color: #42e8ee; }
+.room-code-modal-field input {
+  width: 100%; height: 46px; padding: 0; border: 0 !important; outline: 0;
+  background: transparent !important; box-shadow: none !important; color: #efffff !important;
+  font: 900 18px 'Chakra Petch' !important; letter-spacing: 5px; text-transform: uppercase;
+}
+.room-code-modal-field input::placeholder { color: #315b67 !important; opacity: 1; }
+.room-code-modal-submit {
+  width: 100%; height: 42px; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 7px;
+  border: 1px solid #4cecf2; background: #18cad6; color: #001518; font: 900 9px 'Chakra Petch'; cursor: pointer;
+}
+.room-code-modal-submit:hover { background: #65f0f4; }
+.room-code-modal-submit svg { width: 16px; }
+
+/* Room bulk selection. */
+.admin-page .admin-table-head:has(+ .admin-table-body.rooms),
+.admin-page .admin-table-body.rooms > article {
+  grid-template-columns: 38px minmax(260px, 1.5fr) minmax(180px, 1fr) 150px !important;
+}
+
+.admin-page .admin-table-head:has(+ .admin-table-body.rooms)::before {
+  content: 'CHỌN';
+  color: #397683;
+  font-size: 6px;
+}
+
+.admin-room-check {
+  width: 30px;
+  height: 30px;
+  margin: 0 !important;
+  display: grid !important;
+  place-items: center;
+  cursor: pointer;
+}
+
+.admin-room-check input,
+.admin-room-bulk input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-room-check span,
+.admin-room-bulk label > span {
+  width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #26768a;
+  background: #051723;
+}
+
+.admin-room-check input:checked + span,
+.admin-room-bulk input:checked + span {
+  border-color: #59f0f5;
+  background: #19b9c7;
+  box-shadow: 0 0 10px rgb(40 226 234 / 22%);
+}
+
+.admin-room-check input:checked + span::after,
+.admin-room-bulk input:checked + span::after {
+  content: '✓';
+  color: #001418;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.admin-page .admin-table-body.rooms > article.selected {
+  background: linear-gradient(90deg, rgb(8 77 94 / 62%), #061520) !important;
+  box-shadow: inset 3px 0 #36e8ef !important;
+}
+
+.admin-room-bulk {
+  min-height: 48px;
+  padding: 7px 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-top: 1px solid #14566a;
+  background: #061824;
+}
+
+.admin-room-bulk label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8bc2ca;
+  font: 800 8px 'Chakra Petch';
+  letter-spacing: .7px;
+  cursor: pointer;
+}
+
+.admin-room-bulk small { margin-left: auto; color: #5b8992; font-size: 8px; }
+.admin-room-bulk button {
+  min-height: 32px;
+  padding: 0 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #9b3447;
+  background: #32131d;
+  color: #ff8295;
+  font: 800 8px 'Chakra Petch';
+  cursor: pointer;
+}
+.admin-room-bulk button:disabled { opacity: .3; cursor: not-allowed; }
+.admin-room-bulk button svg { width: 14px; }
+
+@media (max-width: 1000px) {
+  .admin-page .admin-table-body.rooms > article {
+    grid-template-columns: 34px minmax(0, 1fr) auto !important;
+  }
+  .admin-page .admin-table-body.rooms > article > span:first-of-type { grid-column: 2 / -1 !important; }
+  .admin-page .admin-table-body.rooms > article > span:nth-of-type(2) { grid-column: 2 !important; }
+  .admin-page .admin-table-body.rooms > article > div:last-child { grid-column: 3 !important; }
+}
+
+@media (max-width: 600px) {
+  .admin-room-bulk { gap: 7px; padding-inline: 8px; flex-wrap: wrap; }
+  .admin-room-bulk small { display: none; }
+  .admin-room-bulk button { margin-left: auto; }
+}
+
+/* Rebuilt quick-join form: isolated from global input/button skin rules. */
+.room-code-join {
+  width: min(390px, 100%) !important;
+  height: 42px !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 112px !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid #176b80 !important;
+  background: #04111c !important;
+  box-shadow: none !important;
+}
+
+.room-code-join .room-code-field {
+  min-width: 0 !important;
+  height: 40px !important;
+  padding: 0 11px !important;
+  display: grid !important;
+  grid-template-columns: 20px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border: 0 !important;
+  border-right: 1px solid #176b80 !important;
+  background: #030d17 !important;
+}
+
+.room-code-join .room-code-field:focus-within { box-shadow: inset 3px 0 #36e8ef !important; }
+.room-code-join .room-code-field > svg { width: 16px !important; color: #36e8ef !important; }
+.room-code-join .room-code-field > span { min-width: 0 !important; }
+.room-code-join .room-code-field input {
+  width: 100% !important;
+  height: 38px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #e8fdff !important;
+  text-align: left !important;
+  font: 800 10px 'Chakra Petch' !important;
+  letter-spacing: 1.5px !important;
+}
+
+.room-code-join .room-code-field input::placeholder { color: #547681 !important; opacity: 1 !important; }
+.room-code-join .room-code-submit {
+  width: 112px !important;
+  min-width: 112px !important;
+  height: 40px !important;
+  margin: 0 !important;
+  padding: 0 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #13c8d5 !important;
+  color: #001519 !important;
+  font: 900 8px 'Chakra Petch' !important;
+  letter-spacing: .5px !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  clip-path: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.room-code-join .room-code-submit:hover { background: #56edf2 !important; }
+.room-code-join .room-code-submit svg { width: 14px !important; }
+
+@media (max-width: 600px) {
+  .room-code-join { grid-template-columns: minmax(0, 1fr) 98px !important; }
+  .room-code-join .room-code-submit { width: 98px !important; min-width: 98px !important; font-size: 7px !important; }
+}
+
+/* Compact create-room dialog and collision-proof quick join. */
+.create-room-modal {
+  width: min(520px, calc(100vw - 28px)) !important;
+  max-height: calc(100dvh - 28px) !important;
+  padding: 22px !important;
+  border-color: #176f83 !important;
+  background: linear-gradient(145deg, #071b2a, #030c16) !important;
+}
+
+.create-room-modal .room-modal-icon {
+  width: 42px !important;
+  height: 42px !important;
+  margin-bottom: 10px !important;
+}
+
+.create-room-modal > span { font-size: 8px !important; }
+.create-room-modal h2 { margin: 4px 0 12px !important; font-size: 27px !important; }
+.create-room-modal label { margin-top: 10px !important; gap: 5px !important; font-size: 8px !important; }
+.create-room-modal label > input,
+.create-room-modal .password-input-wrap { height: 40px !important; min-height: 40px !important; }
+
+.create-room-modal .room-visibility-picker {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+  margin-top: 10px !important;
+}
+
+.create-room-modal .room-visibility-picker button {
+  min-height: 64px !important;
+  padding: 10px 12px !important;
+  display: grid !important;
+  grid-template-columns: 24px minmax(0, 1fr) !important;
+  align-items: center !important;
+  align-content: center !important;
+  gap: 8px !important;
+  border-color: #174c60 !important;
+  background: #061623 !important;
+}
+
+.create-room-modal .room-visibility-picker button.active {
+  border-color: #36e8ef !important;
+  background: linear-gradient(100deg, rgb(10 76 92 / 82%), #071724) !important;
+  box-shadow: inset 3px 0 #3cecf2 !important;
+}
+
+.create-room-modal .room-visibility-picker button svg { width: 20px !important; }
+.create-room-modal .room-visibility-picker button b { font-size: 13px !important; }
+.create-room-modal .btn-wide { min-height: 42px !important; margin-top: 14px !important; }
+
+.room-code-join {
+  display: flex !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+}
+
+.room-code-join > label {
+  width: auto !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+
+.room-code-join > .btn {
+  position: relative !important;
+  width: 118px !important;
+  min-width: 118px !important;
+  flex: 0 0 118px !important;
+  clip-path: none !important;
+  transform: none !important;
+}
+
+.room-code-join > .btn::before,
+.room-code-join > .btn::after {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  .create-room-modal {
+    width: min(440px, calc(100vw - 20px)) !important;
+    padding: 16px 14px !important;
+  }
+
+  .create-room-modal .room-modal-icon {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .create-room-modal h2 { font-size: 23px !important; }
+  .create-room-modal .room-visibility-picker button { min-height: 56px !important; padding: 7px 8px !important; }
+  .create-room-modal .room-visibility-picker button b { font-size: 11px !important; }
+  .room-code-join > .btn { width: 104px !important; min-width: 104px !important; flex-basis: 104px !important; }
 }
